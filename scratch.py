@@ -16,17 +16,7 @@ def find_q(p, n):
     q = brentq(objective, 0, 1)
     return q
 
-#  p = find_q(0.70, 7)
-# print(p)
-# for i in range(6):
 
-print("Replica...")
-time.sleep(5)
 
-print("CHUTY BICAMPEON" if random.random() < 0.6 else "MECHA CAMPEON")
-
-# Chuty
-# Mecha
-
-# Katacrist (3ro)
-# El Menor (4to)
+for a, b in enumerate([4, 4, 6]):
+    print(a, b)

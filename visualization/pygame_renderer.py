@@ -7,20 +7,14 @@ class Camera:
         self.height = height
         self.position = [0, 0]
         self.filtered_scale = 1
-        # self.view_radius = 1024
 
     def update(self, player):
         total_size = player["total_size"]
         scale = math.pow(min(64 / total_size, 1), 0.4)
         self.filtered_scale = (9 * self.filtered_scale + scale) / 10
-        
-        # self.view_radius = 1024 / scale
 
         self.position[0] = player['x'] - self.width / (2* self.filtered_scale)
         self.position[1] = player['y'] - self.height / (2* self.filtered_scale)
-
-    # def center(self):
-    #     return (self.position[0] + self.width / (2* self.filtered_scale), self.position[1] + self.height / (2* self.filtered_scale))
 
 class PygameRenderer:
     def __init__(self, game_config):

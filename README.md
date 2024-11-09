@@ -35,12 +35,21 @@ iteration 2: actually design the game.
 
 - self-collission (done)
 
-- multiple players
-- eating other players
+- multiple players (done)
+  a. define a dummy bot (done)
+- eating other players (done)
 
 - viruses
 - W foods
 - duplicating viruses
+
+- defining a better, non dummy bot
+
+- set up environment
+
+- train a basic RL bot.
+
+- Use DQN.
 
 
 optional:

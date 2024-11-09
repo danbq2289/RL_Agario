@@ -3,17 +3,27 @@ import pygame
 from core.game import Game
 # from environment import AgarEnvironment
 from visualization.pygame_renderer import PygameRenderer
-# from bots.random_bot import RandomBot
+from bots.basic_bots import DummyBot
 # from bots.rl_bot import RLBot
 import config
 
-def human_play(game_config):
+def human_play_with_dummies(game_config, n_dummies):
+    if n_dummies > 20:
+        raise Exception("might lag. bypass if you want, but you have been warned")
     renderer = PygameRenderer(game_config)
-    game = Game(["Human"], game_config)
+    dummy_names = [f"dum{i}" for i in range(1, n_dummies+1)]
+    game = Game(["Human"] + dummy_names, game_config, "human_with_dummies")
+
+    dummy_bots = [DummyBot(name) for name in dummy_names]
+
     clock = pygame.time.Clock()
 
     running = True
     split_key_pressed = False
+
+    # initial game state
+    game_state = game.get_state()
+
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -33,7 +43,7 @@ def human_play(game_config):
         else:
             do_split = False
 
-        game.update([(action_x, action_y, do_split)])
+        game.update([(action_x, action_y, do_split)] + [dummy_bot.get_action(game_state) for dummy_bot in dummy_bots])
         game_state = game.get_state()
         renderer.render(game_state)
         clock.tick(game_config.FPS)
@@ -79,18 +89,17 @@ def train_rl(game_config, num_episodes=1000, visualize=False):
     pass
 
 if __name__ == "__main__":
-    # parser = argparse.ArgumentParser(description="Agar.io RL Environment")
-    # parser.add_argument("--mode", choices=["human", "bot_test", "train"], default="human", help="Mode of operation")
+    parser = argparse.ArgumentParser(description="Agar.io RL Environment")
+    parser.add_argument("--mode", choices=["human_with_dummies", "bot_test", "train"], default="human_with_dummies", help="Mode of operation")
+    parser.add_argument("--num_dummies")
     # parser.add_argument("--visualize", action="store_true", help="Enable visualization for bot_test and train modes")
-    # args = parser.parse_args()
+    args = parser.parse_args()
 
     game_config = config.GameConfig()
 
-    # if args.mode == "human":
-    #     human_play(game_config)
+    if args.mode == "human_with_dummies":
+        human_play_with_dummies(game_config, int(args.num_dummies))
     # elif args.mode == "bot_test":
     #     bot_test(game_config, visualize=args.visualize)
     # elif args.mode == "train":
     #     train_rl(game_config, visualize=args.visualize)
-
-    human_play(game_config)

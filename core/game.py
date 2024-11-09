@@ -4,11 +4,21 @@ from core.food import Pellet
 import random
 
 class Game:
-    def __init__(self, player_names, config):
-
-        self.players = [Player(100, 100, (100, 150, 50), player_names[0])]  # todo: multiple players
+    def __init__(self, player_names, config, mode):
         self.config = config
-        self.food = self.generate_food(self.config.INITIAL_FOOD_COUNT)
+        if mode == "human_with_dummies":
+            first_player = Player(100, 100, (250, 150, 0), player_names[0])
+
+            # dummy bots
+            self.players = [first_player] + [Player(
+                random.randint(0, self.config.GAME_WIDTH),
+                random.randint(0, self.config.GAME_HEIGHT),
+                (100 + random.randint(0, 155), 100 + random.randint(0, 155), 100 + random.randint(0, 155)),
+                name, mass=random.randint(200, 500)) for name in player_names[1:]]
+            
+            self.food = self.generate_food(self.config.INITIAL_FOOD_COUNT)
+        else:
+            raise Exception("mode not supported")
 
     def update(self, actions):
         for player, action in zip(self.players, actions):
@@ -33,15 +43,16 @@ class Game:
             self.food.extend(self.generate_food(new_food_count))
 
     def handle_collisions(self):
-        for player in self.players:
+        for i, player in enumerate(self.players):
             # Check for food collisions
             self.food = [f for f in self.food if not player.eat(f)]
             
-            # Check for player collisions (if implementing player-player interactions)
-            # for other_player in self.players:
-            #     if other_player != player:
-            #         for other_cell in other_player.cells:
-            #             if player.can_eat(other_cell):
-            #                 player.eat(other_cell)
-            #                 other_player.cells.remove(other_cell)
+            # Check for player collisions
+            for j, other_player in enumerate(self.players):
+                if i != j:
+                    for other_cell in other_player.cells:
+                        if player.eat(other_cell):
+                            other_player.cells.remove(other_cell)
+                            if len(other_player.cells) == 0:
+                                other_player.reset()
     

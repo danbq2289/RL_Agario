@@ -24,8 +24,8 @@ class GameConfig:
         self.PELLET_MASS = 1
         self.PELLET_RADIUS = 8
 
-        self.INITIAL_FOOD_COUNT = 2000
-        self.MAX_FOOD_COUNT = 1500
+        self.INITIAL_FOOD_COUNT = int(self.GAME_HEIGHT * self.GAME_WIDTH/18000)
+        self.MAX_FOOD_COUNT = int(0.8 * self.INITIAL_FOOD_COUNT)
         self.FOOD_SPAWN_RATE = 5  # New food particles per frame
 
         self.MIN_PLAYER_MASS = 9

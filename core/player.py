@@ -1,5 +1,7 @@
 import math
 import config
+import random
+
 game_config = config.GameConfig()
 
 player_initial_mass = 10
@@ -103,8 +105,14 @@ class Cell:
 
 class Player:
     def __init__(self, x, y, color, name, mass=game_config.INITIAL_PLAYER_MASS):
+        self.name = name
+        self.color = color
         self.cells = [Cell(x, y, color, name, mass)]
         self.split_cooldown = 0
+
+    def reset(self):
+        """Use this function to respawn the player"""
+        self.cells = [Cell(random.randint(0, game_config.GAME_WIDTH), random.randint(0, game_config.GAME_HEIGHT), self.color, self.name, game_config.INITIAL_PLAYER_MASS)]
 
     def move(self, px, py):
         """Move the player's cells towards the point px, py,

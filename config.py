@@ -5,6 +5,11 @@ class GameConfig:
         self.HEIGHT = 900
 
         # Game graphics
+        self.FPS = 60
+        self.BACKGROUND_COLOR = (240, 240, 240)
+        self.GRID_COLOR = (230, 230, 230)
+        self.GRID_SPACING = 50
+
         self.GAME_WIDTH = 6000
         self.GAME_HEIGHT = 6000
 
@@ -24,7 +29,10 @@ class GameConfig:
         self.FOOD_SPAWN_RATE = 5  # New food particles per frame
 
         self.MIN_PLAYER_MASS = 9
+        self.MAX_PLAYER_MASS = 22500
         self.MASS_LOSS_RATE = 0.002
+
+        self.MAX_AMOUNT_CELLS = 16
 
         # Player movement
         self.BASE_SPEED = 100  # Pixels per second
@@ -33,14 +41,12 @@ class GameConfig:
         # Game mechanics
         self.ABSORPTION_RATIO = 1.1  # Minimum size ratio for absorption
         self.SPLIT_MASS_THRESHOLD = 35
-        self.SPLIT_COOLDOWN = 10  # Seconds
-        self.MERGE_TIME = 30  # Seconds before split cells can merge
+        self.SPLIT_SPEED = 15
+        self.SPLIT_COOLDOWN = 0.2  # Seconds
+        self.MERGE_TIME_FROM_MASS = lambda mass: 30 + (7/300)*mass  # Seconds before split cells can merge
 
-        # Visualization
-        self.FPS = 60
-        self.BACKGROUND_COLOR = (240, 240, 240)
-        self.GRID_COLOR = (230, 230, 230)
-        self.GRID_SPACING = 50
+        self.MASS_FACTOR_EAT_ANOTHER = 1.2
+        self.CLOSENESS_FACTOR = 0.25
 
         # RL training
         self.MAX_STEPS = 10000  # Maximum steps per episode

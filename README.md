@@ -29,16 +29,22 @@ iteration 2: actually design the game.
 - get speed, initial size, food mass, etc. from config. (done)
 - weighted average position in player (done)
 
-- player with multiple cells
-- splitting 
+- player with multiple cells (done)
+- splitting (done)
 
 
-- self-collission
+- self-collission (done)
 
 - multiple players
 - eating other players
+
+- viruses
+- W foods
+- duplicating viruses
 
 
 optional:
 - more order in config: pass params to game, player instead of creating a config (might not be good)
 - the action right now is (mouse pos, do_splitting), might change to either mouse_pos or do_splitting, but this is harder to work with
+
+- the movement equations are done per frame, so if FPS is changed then the equations change a lot. maybe correct this. not necessary.

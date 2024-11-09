@@ -13,40 +13,30 @@ def human_play(game_config):
     clock = pygame.time.Clock()
 
     running = True
-    i = 0
-    # counter = 0
+    split_key_pressed = False
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
 
+            # for splitting
+            elif event.type == pygame.KEYDOWN:  
+                split_key_pressed = event.key == pygame.K_SPACE
+                    
         mouse_x, mouse_y = pygame.mouse.get_pos()
-        action = renderer.screen_to_world((mouse_x, mouse_y))
-        # print(mouse_x, mouse_y)
-        game.update([action])
+        action_x, action_y = renderer.screen_to_world((mouse_x, mouse_y))
+
+        # for splitting
+        if split_key_pressed:
+            do_split = True
+            split_key_pressed = False  # Reset the flag
+        else:
+            do_split = False
+
+        game.update([(action_x, action_y, do_split)])
         game_state = game.get_state()
         renderer.render(game_state)
-        # if i%5 == 0:
-        #     print(mouse_x, mouse_y)
-        #     print(action[0], action[1])
-
-        #     print(game_config.WIDTH/2, game_config.HEIGHT/2)
-        #     action_c = renderer.world_to_screen((game_config.WIDTH/2, game_config.HEIGHT/2))
-        #     print(action_c[0], action_c[1])
-        # print(game_state['players'][0]['x'], game_state['players'][0]['y'])
-            
-        # i += 1
         clock.tick(game_config.FPS)
-        # print(game_state["players"][0]["total_mass"])
-        
-        # if counter > 2:
-        #     if i%5 == 0:
-        #         print("i =", i)
-        #     i = i+1
-        #     counter = 0
-        # counter += 1
-        
-
     renderer.close()
 
 def bot_test(game_config, num_bots=3, visualize=True):

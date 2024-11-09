@@ -12,8 +12,8 @@ class Game:
 
     def update(self, actions):
         for player, action in zip(self.players, actions):
-            player.move(*action)
-        self.handle_collisions()
+            player.update(action)  # Handles self collisions
+        self.handle_collisions()  # Collisions with food and player to player
         self.spawn_food()
 
     def get_state(self):

@@ -48,6 +48,8 @@ class GameConfig:
         self.MASS_FACTOR_EAT_ANOTHER = 1.2
         self.CLOSENESS_FACTOR = 0.25
 
+        self.VIRUS_MASS = 110
+
         # RL training
         self.MAX_STEPS = 10000  # Maximum steps per episode
         self.REWARD_FOOD = 1

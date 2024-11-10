@@ -4,43 +4,12 @@ Installation instructions:
 2. conda activate HRL
 3. pip install pygame
 
+so far there's the option to play with dummy bots:
+python main.py --mode human_with_dummies --num_dummies 3
 
 TODO:
-
-iteration 0 (done):
-- create MVP: something that runs
-
-- visualize pipeline
-
-iteration 1: (done)
-- create camera, pass in to game state
-
-iteration 2: actually design the game.
-
-- move with mouse (done)
-- speed issues (done)
-
-- square limits, collision with it (done)
-
-- food (done)
-- passive mass loss(done)
-
-
-- get speed, initial size, food mass, etc. from config. (done)
-- weighted average position in player (done)
-
-- player with multiple cells (done)
-- splitting (done)
-
-
-- self-collission (done)
-
-- multiple players (done)
-  a. define a dummy bot (done)
-- eating other players (done)
-
 - viruses
-- W foods
+- feeding others
 - duplicating viruses
 
 - defining a better, non dummy bot

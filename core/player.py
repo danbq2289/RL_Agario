@@ -185,14 +185,7 @@ class Player:
         if new_cells:
             self.split_cooldown = game_config.SPLIT_COOLDOWN
 
-    def handle_self_collisions(self, dt):
-        # For any two cells:
-        # If they're not touching, don't give impulse
-        # If they're touching:
-        #   if they're able to merge:
-        #       if they're close enough, merge them
-        #   else:
-        #       give impulse out
+    def handle_self_collisions(self):
         for i, cell1 in enumerate(self.cells):
             for cell2 in self.cells[i+1:]:
                 dx = cell2.x - cell1.x
@@ -219,21 +212,9 @@ class Player:
 
     def update(self, action):
         px, py, do_split = action
-        dt = 1/game_config.FPS
-
-        # Gives impulse from splitting
         if do_split:
             self.try_split(px, py)
+
         self.split_cooldown = max(0, self.split_cooldown - 1/game_config.FPS)
-
-        # Impulse affects movement
-        # Impulse diminishes / is updated
         self.move(px, py)
-
-        # Give impulse from collisions
-        self.handle_self_collisions(dt)
-
-
-    # def __repr__(self):
-    #     return f"Player(id={self.id}, x={self.x:.2f}, y={self.y:.2f}, radius={self.radius:.2f}, score={self.score})"
-    
+        self.handle_self_collisions()

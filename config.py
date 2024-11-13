@@ -18,15 +18,18 @@ class GameConfig:
         self.SPEED_FROM_RADIUS = lambda radius: 30 * radius ** -0.439
 
         # Game rules
-        self.MAX_PLAYERS = 10
-        self.INITIAL_PLAYER_MASS = 10
+        self.MAX_PLAYERS = 20
+        self.INITIAL_PLAYER_MASS = 1000
 
         self.PELLET_MASS = 1
-        self.PELLET_RADIUS = 8
-
         self.INITIAL_FOOD_COUNT = int(self.GAME_HEIGHT * self.GAME_WIDTH/18000)
-        self.MAX_FOOD_COUNT = int(0.8 * self.INITIAL_FOOD_COUNT)
+        self.MAX_FOOD_COUNT = self.INITIAL_FOOD_COUNT
         self.FOOD_SPAWN_RATE = 5  # New food particles per frame
+
+        self.VIRUS_MASS = 110
+        self.INITIAL_VIRUS_COUNT = int(self.INITIAL_FOOD_COUNT/200)
+        self.MAX_VIRUS_COUNT = self.INITIAL_VIRUS_COUNT
+        self.VIRUS_SPAWN_RATE = 1
 
         self.MIN_PLAYER_MASS = 9
         self.MAX_PLAYER_MASS = 22500
@@ -41,14 +44,13 @@ class GameConfig:
         # Game mechanics
         self.ABSORPTION_RATIO = 1.1  # Minimum size ratio for absorption
         self.SPLIT_MASS_THRESHOLD = 35
-        self.SPLIT_SPEED = 15
+        self.SPLIT_SPEED = 30
+        self.EXPLODE_SPEED = 50
         self.SPLIT_COOLDOWN = 0.2  # Seconds
         self.MERGE_TIME_FROM_MASS = lambda mass: 30 + (7/300)*mass  # Seconds before split cells can merge
 
         self.MASS_FACTOR_EAT_ANOTHER = 1.2
         self.CLOSENESS_FACTOR = 0.25
-
-        self.VIRUS_MASS = 110
 
         # RL training
         self.MAX_STEPS = 10000  # Maximum steps per episode

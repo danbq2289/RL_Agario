@@ -89,11 +89,24 @@ class PygameRenderer:
             radius = int(f['radius'] * self.camera.filtered_scale)
             pygame.draw.circle(self.screen, f['color'], pos, max(1, radius))
 
+    def draw_viruses(self, viruses):
+        for v in viruses:
+            x, y, spikes, radius = v['x'], v['y'], v['spikes'], v['radius']
+            points = []
+            for i in range(spikes * 2):
+                angle = i * math.pi / spikes
+                r = radius * (0.97 if i % 2 == 0 else 1.03)
+                px = x + r * math.cos(angle)
+                py = y + r * math.sin(angle)
+                points.append(self.world_to_screen((px, py)))
+            pygame.draw.polygon(self.screen, v['color'], points)
+
     def render(self, game_state):
         self.screen.fill((255, 255, 255))  # White background
 
         players = game_state['players']
         food = game_state['food']
+        viruses = game_state['viruses']
 
         # Update camera based on the first player
         if players:
@@ -102,6 +115,7 @@ class PygameRenderer:
         self.draw_grid(self.grid_spacing)
         self.draw_game_border()
         self.draw_food(food)
+        self.draw_viruses(viruses)
 
         for player in players:
             self.draw_player(player)

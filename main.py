@@ -8,8 +8,8 @@ from bots.basic_bots import DummyBot
 import config
 
 def human_play_with_dummies(game_config, n_dummies):
-    if n_dummies > 20:
-        raise Exception("might lag. bypass if you want, but you have been warned")
+    if n_dummies > game_config.MAX_PLAYERS:
+        raise Exception("might lag. bypass if you want (config.py), but you have been warned")
     renderer = PygameRenderer(game_config)
     dummy_names = [f"dum{i}" for i in range(1, n_dummies+1)]
     game = Game(["Human"] + dummy_names, game_config, "human_with_dummies")

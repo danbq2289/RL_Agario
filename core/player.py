@@ -12,12 +12,10 @@ class Cell:
         self.color = color
         self.name = name
         self.mass = mass
-        self.update_radius_and_speed()
+        self.update_radius_speed_merge(reset_merge=True)
 
         self.external_vx = vx
         self.external_vy = vy
-
-        self.merge_time = game_config.MERGE_TIME_FROM_MASS(mass)
 
     def move(self, px, py):
         """
@@ -32,8 +30,8 @@ class Cell:
         new_x = self.x + self.external_vx
         new_y = self.y + self.external_vy
         
-        self.external_vx *= 0.9  # Decay velocity
-        self.external_vy *= 0.9
+        self.external_vx *= 0.93  # Decay velocity
+        self.external_vy *= 0.93
         
         if magnitude > 0:
             new_x += (dx/magnitude) * self.speed
@@ -44,18 +42,20 @@ class Cell:
 
         # Passive mass loss
         self.mass = max(game_config.MIN_PLAYER_MASS, self.mass*(1 - game_config.MASS_LOSS_RATE / game_config.FPS))
+        self.update_radius_speed_merge()
 
         # Reduce cooldowns
         self.merge_time = max(0, self.merge_time - 1/game_config.FPS)
 
     def grow(self, amount):
-        """Increase the cell's size and mass."""
         self.mass += amount
-        self.update_radius_and_speed()
+        self.update_radius_speed_merge()
 
-    def update_radius_and_speed(self):
+    def update_radius_speed_merge(self, reset_merge=False):
         self.radius = game_config.RADIUS_FROM_MASS(self.mass)
         self.speed = game_config.SPEED_FROM_RADIUS(self.radius)
+        if reset_merge:
+            self.merge_time = game_config.MERGE_TIME_FROM_MASS(self.mass)
 
     def can_eat(self, other):
         """Check if this player can eat another player or food item."""
@@ -84,8 +84,7 @@ class Cell:
         if self.mass >= game_config.SPLIT_MASS_THRESHOLD:
             new_mass = self.mass / 2
             self.mass = new_mass
-            self.radius = game_config.RADIUS_FROM_MASS(self.mass)
-            self.speed = game_config.SPEED_FROM_RADIUS(self.radius)
+            self.update_radius_speed_merge(reset_merge=True)
 
             dx = px - self.x
             dy = py - self.y
@@ -98,9 +97,41 @@ class Cell:
             vx = (dx / magnitude) * split_speed
             vy = (dy / magnitude) * split_speed
             new_cell = Cell(self.x, self.y, self.color, self.name, new_mass, vx, vy)
-            self.merge_time = game_config.MERGE_TIME_FROM_MASS(self.mass)
             return new_cell
         return None
+    
+    def explode(self, max_new_cells):
+        if max_new_cells <= 0:
+            return []
+        
+        new_cells = []
+
+        # Calculate the number of new cells we can create
+        num_new_cells = min(max_new_cells, int(self.mass / game_config.MIN_PLAYER_MASS) - 1)
+
+        # Calculate the mass for each new cell
+        new_cell_mass = self.mass / (num_new_cells + 1)
+
+        # Update the original cell's mass and properties
+        self.mass = new_cell_mass
+        self.update_radius_speed_merge(reset_merge=True)
+
+        # Create new cells
+        for _ in range(num_new_cells):
+            # Generate a random angle for the new cell's direction
+            angle = random.uniform(0, 2 * math.pi)
+            
+            # Calculate the velocity components
+            split_speed = game_config.EXPLODE_SPEED
+            vx = math.cos(angle) * split_speed
+            vy = math.sin(angle) * split_speed
+
+            # Create the new cell
+            new_cell = Cell(self.x, self.y, self.color, self.name, new_cell_mass, vx, vy)
+            new_cell.merge_time = game_config.MERGE_TIME_FROM_MASS(new_cell_mass)
+            new_cells.append(new_cell)
+
+        return new_cells
 
 
 class Player:
@@ -120,14 +151,23 @@ class Player:
         for cell in self.cells:
             cell.move(px, py)
 
-    def eat(self, other):
-        """Attempt to eat another object (food or player cell)."""
+    def eat(self, other, virus=False):
+        """Attempt to eat another object (food or player cell). If virus, explode if eaten."""
         for cell in self.cells:
             if cell.can_eat(other) and cell.intersects_with(other):
                 cell.grow(other.mass)
                 self.regulate_cell_masses()
+                if virus:
+                    self.explode_cell(cell)
+                    pass
                 return True
         return False
+    
+    def explode_cell(self, cell):
+        new_cells = cell.explode(max_new_cells=game_config.MAX_AMOUNT_CELLS - len(self.cells))
+        self.cells.extend(new_cells)
+        if new_cells:
+            self.split_cooldown = game_config.SPLIT_COOLDOWN
     
     def regulate_cell_masses(self):
         """Regulates masses so that the total mass doesn't exceed the maximum.
@@ -160,6 +200,7 @@ class Player:
             center_y += cell["y"] * cell["mass"]
 
         total_mass = sum([cell['mass'] for cell in cell_states])
+        # print("Player.py line 202: MASS:", total_mass)
         center_x, center_y = center_x/total_mass, center_y/total_mass
         return {
             "total_size": sum([cell['radius'] for cell in cell_states]),

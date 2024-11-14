@@ -17,12 +17,20 @@ class DummyBot:
     def get_action(self, game_state):
         # Extract the bot's position from the game state
         bot_state = next((player for player in game_state['players'] if player['name'] == self.name), None)
-        players_cells_pos_and_masses = []
-        for player in game_state['players']:
-            if player['name'] == self.name:
-                continue
-            for cell in player['cells']:
-                pass
+
+        
+        # If player with small mass is nearby, split
+        if len(bot_state['cells']) == 1:
+            cell = bot_state['cells'][0]
+            for player in game_state['players']:
+                if player['name'] == self.name:
+                    continue
+                for other_cell in player['cells']:
+                    if math.sqrt((cell['x'] - other_cell['x'])**2 + (cell['y'] - other_cell['y'])**2) < 600:
+                        print("close")
+                        if cell['mass'] > game_config.MASS_FACTOR_EAT_ANOTHER*other_cell['mass']:
+                            # Chase
+                            return (other_cell['x'], other_cell['y'], cell['mass'] > 2*game_config.MASS_FACTOR_EAT_ANOTHER*other_cell['mass'], False)
 
         
         if not bot_state:

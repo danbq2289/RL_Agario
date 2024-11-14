@@ -16,7 +16,7 @@ class Game:
                 random.randint(0, self.config.GAME_WIDTH), 
                 random.randint(0, self.config.GAME_HEIGHT),
                 (100 + random.randint(0, 155), 100 + random.randint(0, 155), 100 + random.randint(0, 155)),
-                name, mass=random.randint(200, 500)) for name in player_names[1:]]
+                name, mass=random.randint(80, 200)) for name in player_names[1:]]
         else:
             raise Exception("mode not supported")
         

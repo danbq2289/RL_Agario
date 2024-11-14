@@ -19,7 +19,7 @@ class GameConfig:
 
         # Game rules
         self.MAX_PLAYERS = 20
-        self.INITIAL_PLAYER_MASS = 1000
+        self.INITIAL_PLAYER_MASS = 100
 
         self.PELLET_MASS = 1
         self.INITIAL_FOOD_COUNT = int(self.GAME_HEIGHT * self.GAME_WIDTH/18000)
@@ -45,7 +45,7 @@ class GameConfig:
         self.MAX_AMOUNT_CELLS = 16
 
         # Game mechanics
-        self.ABSORPTION_RATIO = 1.1  # Minimum size ratio for absorption
+        # self.ABSORPTION_RATIO = 1.1  # Minimum size ratio for absorption
         self.SPLIT_MASS_THRESHOLD = 35
         self.SPLIT_SPEED = 30
         self.VIRUS_SPLIT_SPEED = 40

@@ -9,10 +9,6 @@ python main.py --mode human_with_dummies --num_dummies 5
 
 TODO:
 
-- defining a better, non dummy bot (chases you)
-
-----------------------------
-
 - set up environment
 
 - define get_env_state

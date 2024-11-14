@@ -144,16 +144,19 @@ class Cell:
             # default to ejecting to the right
             dx, dy, magnitude = 1, 0, 1
 
-        if self.mass > game_config.MIN_PLAYER_MASS + game_config.EJECTED_MASS:
+        if self.mass >= game_config.MIN_PLAYER_MASS + game_config.EJECTED_MASS:
+
+            angle = math.atan2(dy, dx) + random.uniform(-math.pi, math.pi)/12
+
             # Calculate velocity based on direction
-            vx = (dx / magnitude) * game_config.EJECTION_SPEED
-            vy = (dy / magnitude) * game_config.EJECTION_SPEED
+            vx = math.cos(angle) * game_config.EJECTION_SPEED
+            vy = math.sin(angle) * game_config.EJECTION_SPEED
             
             # Reduce cell mass
             self.mass -= game_config.EJECTED_MASS
             self.update_radius_speed_merge()
 
-            return ThrownPellet(self.x + (dx/magnitude)*self.radius , (dy/magnitude)*self.radius, vx, vy, self.color, game_config.EJECTED_MASS)
+            return ThrownPellet(self.x + (dx/magnitude)*self.radius , self.y + (dy/magnitude)*self.radius, vx, vy, self.color, game_config.EJECTED_MASS)
         
         return None
 
@@ -183,7 +186,6 @@ class Player:
                 self.regulate_cell_masses()
                 if virus:
                     self.explode_cell(cell)
-                    pass
                 return True
         return False
     
@@ -209,9 +211,6 @@ class Player:
             return True
         return False
 
-    def can_eat(self, other):
-        """Check if any of the player's cells can eat the other object."""
-        return any(cell.can_eat(other) for cell in self.cells)
 
     def get_state(self):
         """Return the current state of the player."""
@@ -227,6 +226,7 @@ class Player:
         # print("Player.py line 202: MASS:", total_mass)
         center_x, center_y = center_x/total_mass, center_y/total_mass
         return {
+            "name": self.name,
             "total_size": sum([cell['radius'] for cell in cell_states]),
             "total_mass": sum([cell['mass'] for cell in cell_states]),
             "x": center_x,
@@ -284,11 +284,19 @@ class Player:
                             cell2.y += math.sin(angle) * overlap / 2
 
     def update(self, action):
-        px, py, do_split = action
+        px, py, do_split, do_feed = action
         if do_split:
             self.try_split(px, py)
 
+        ejected_food = []
+        if do_feed:
+            for cell in self.cells:
+                ejected = cell.eject_food(px, py)
+                if ejected:
+                    ejected_food.append(ejected)
+
         self.split_cooldown = max(0, self.split_cooldown - 1/game_config.FPS)
         self.move(px, py)
-        self.handle_self_collisions()    
+        self.handle_self_collisions()
+        return ejected_food
     

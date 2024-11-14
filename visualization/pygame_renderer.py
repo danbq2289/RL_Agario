@@ -115,6 +115,7 @@ class PygameRenderer:
         self.draw_grid(self.grid_spacing)
         self.draw_game_border()
         self.draw_food(food)
+        self.draw_food(game_state['ejected_food'])
         self.draw_viruses(viruses)
 
         for player in players:

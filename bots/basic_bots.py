@@ -16,7 +16,14 @@ class DummyBot:
 
     def get_action(self, game_state):
         # Extract the bot's position from the game state
-        bot_state = next((player for player in game_state['players'] if player['cells'][0]['name'] == self.name), None)
+        bot_state = next((player for player in game_state['players'] if player['name'] == self.name), None)
+        players_cells_pos_and_masses = []
+        for player in game_state['players']:
+            if player['name'] == self.name:
+                continue
+            for cell in player['cells']:
+                pass
+
         
         if not bot_state:
             raise Exception("bot name not found in game")
@@ -39,5 +46,6 @@ class DummyBot:
         target_y = bot_y + 1000 * math.sin(angle)
 
         split = random.random() < 0.0005
+        feed = random.random() < 0.001
 
-        return (target_x, target_y, split)
+        return (target_x, target_y, split, feed)

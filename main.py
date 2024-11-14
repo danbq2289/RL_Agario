@@ -20,9 +20,7 @@ def human_play_with_dummies(game_config, n_dummies):
 
     running = True
     split_key_pressed = False
-
-    # initial game state
-    game_state = game.get_state()
+    feed_key_pressed = False
 
     while running:
         for event in pygame.event.get():
@@ -32,6 +30,7 @@ def human_play_with_dummies(game_config, n_dummies):
             # for splitting
             elif event.type == pygame.KEYDOWN:  
                 split_key_pressed = event.key == pygame.K_SPACE
+                feed_key_pressed = event.key == pygame.K_w
                     
         mouse_x, mouse_y = pygame.mouse.get_pos()
         action_x, action_y = renderer.screen_to_world((mouse_x, mouse_y))
@@ -43,7 +42,16 @@ def human_play_with_dummies(game_config, n_dummies):
         else:
             do_split = False
 
-        game.update([(action_x, action_y, do_split)] + [dummy_bot.get_action(game_state) for dummy_bot in dummy_bots])
+        # for feeding
+        if feed_key_pressed:
+            do_feed = True
+            feed_key_pressed = False  # Reset the flag
+        else:
+            do_feed = False
+
+        # initial game state
+        game_state = game.get_state()
+        game.update([(action_x, action_y, do_split, do_feed)] + [dummy_bot.get_action(game_state) for dummy_bot in dummy_bots])
         game_state = game.get_state()
         renderer.render(game_state)
         clock.tick(game_config.FPS)

@@ -26,13 +26,17 @@ class GameConfig:
         self.MAX_FOOD_COUNT = self.INITIAL_FOOD_COUNT
         self.FOOD_SPAWN_RATE = 5  # New food particles per frame
 
-        self.VIRUS_MASS = 110
+        self.VIRUS_INITIAL_MASS = 110
         self.INITIAL_VIRUS_COUNT = int(self.INITIAL_FOOD_COUNT/200)
-        self.MAX_VIRUS_COUNT = self.INITIAL_VIRUS_COUNT
+        self.MAX_VIRUS_COUNT_GENERATED = self.INITIAL_VIRUS_COUNT
+        self.MAX_VIRUS_COUNT_SEPARATION = 2*self.INITIAL_VIRUS_COUNT
         self.VIRUS_SPAWN_RATE = 1
 
-        self.EJECTED_MASS = 10
-        self.EJECTION_SPEED = 40
+        self.EJECTED_MASS = 16
+        self.EJECTION_SPEED = 30
+
+        self.VIRUS_AMOUNT_FEED_TO_SEPARATE = 7
+        self.VIRUS_SEPARATION_MASS = self.VIRUS_INITIAL_MASS + self.VIRUS_AMOUNT_FEED_TO_SEPARATE * self.EJECTED_MASS
 
         self.MIN_PLAYER_MASS = 9
         self.MAX_PLAYER_MASS = 22500
@@ -44,6 +48,7 @@ class GameConfig:
         self.ABSORPTION_RATIO = 1.1  # Minimum size ratio for absorption
         self.SPLIT_MASS_THRESHOLD = 35
         self.SPLIT_SPEED = 30
+        self.VIRUS_SPLIT_SPEED = 40
         self.EXPLODE_SPEED = 50
         self.SPLIT_COOLDOWN = 0.2  # Seconds
         self.MERGE_TIME_FROM_MASS = lambda mass: 30 + (7/300)*mass  # Seconds before split cells can merge

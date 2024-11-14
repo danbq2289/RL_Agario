@@ -8,22 +8,6 @@ so far there's the option to play with dummy bots:
 python main.py --mode human_with_dummies --num_dummies 5
 
 TODO:
-- implement W mass
-
-- feeding other players and oneself
-
-- growing viruses function
-
-- feeding viruses (so, viruses can also get food)
-
-separate virus when 7th W mass:
-- implement separating function
-
-- try it separately
-
-- implement separating mechanism
-
-- pop other player
 
 - defining a better, non dummy bot (chases you)
 
@@ -35,9 +19,16 @@ separate virus when 7th W mass:
 
 - train a basic RL bot:
 
-- DQN/A2C:
+- DQN
+
+- A2C/Policy gradient:
 
 - Feudal:
+
+
+What kind of insight do you seek -- about the algorithms or about the environments?
+Do you simply want to know if FeUdal Networks outperforms DQN / policy gradient on Agar.io?
+
 
 
 optional:

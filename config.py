@@ -31,15 +31,14 @@ class GameConfig:
         self.MAX_VIRUS_COUNT = self.INITIAL_VIRUS_COUNT
         self.VIRUS_SPAWN_RATE = 1
 
+        self.EJECTED_MASS = 10
+        self.EJECTION_SPEED = 40
+
         self.MIN_PLAYER_MASS = 9
         self.MAX_PLAYER_MASS = 22500
         self.MASS_LOSS_RATE = 0.002
 
         self.MAX_AMOUNT_CELLS = 16
-
-        # Player movement
-        self.BASE_SPEED = 100  # Pixels per second
-        self.MASS_SPEED_FACTOR = 0.005  # Speed reduction factor based on mass
 
         # Game mechanics
         self.ABSORPTION_RATIO = 1.1  # Minimum size ratio for absorption

@@ -1,6 +1,7 @@
 import math
 import config
 import random
+from core.food import ThrownPellet
 
 game_config = config.GameConfig()
 
@@ -132,6 +133,29 @@ class Cell:
             new_cells.append(new_cell)
 
         return new_cells
+    
+    def eject_food(self, px, py):
+
+        dx = px - self.x
+        dy = py - self.y
+
+        magnitude = math.sqrt(dx**2 + dy**2)
+        if magnitude == 0:
+            # default to ejecting to the right
+            dx, dy, magnitude = 1, 0, 1
+
+        if self.mass > game_config.MIN_PLAYER_MASS + game_config.EJECTED_MASS:
+            # Calculate velocity based on direction
+            vx = (dx / magnitude) * game_config.EJECTION_SPEED
+            vy = (dy / magnitude) * game_config.EJECTION_SPEED
+            
+            # Reduce cell mass
+            self.mass -= game_config.EJECTED_MASS
+            self.update_radius_speed_merge()
+
+            return ThrownPellet(self.x + (dx/magnitude)*self.radius , (dy/magnitude)*self.radius, vx, vy, self.color, game_config.EJECTED_MASS)
+        
+        return None
 
 
 class Player:
@@ -181,7 +205,7 @@ class Player:
                 raise Exception("It seems that MAX_PLAYER_MASS <= MIN_PLAYER_MASS * MAX_AMOUNT_CELLS, which is nonsensical. Please correct this.")
             for cell in self.cells:
                 cell.mass = game_config.MIN_PLAYER_MASS + (cell.mass - game_config.MIN_PLAYER_MASS) * mass_goal/mass_to_regulate
-                cell.update_radius_and_speed()
+                cell.update_radius_speed_merge(reset_merge=False)
             return True
         return False
 
@@ -226,6 +250,14 @@ class Player:
         if new_cells:
             self.split_cooldown = game_config.SPLIT_COOLDOWN
 
+    def eject_food(self, px, py):
+        ejected_cells = []
+        for cell in self.cells:
+            thrown_pellet = cell.eject_food(px, py)
+            if thrown_pellet is not None:
+                ejected_cells.append(thrown_pellet)
+        return ejected_cells
+
     def handle_self_collisions(self):
         for i, cell1 in enumerate(self.cells):
             for cell2 in self.cells[i+1:]:
@@ -258,4 +290,5 @@ class Player:
 
         self.split_cooldown = max(0, self.split_cooldown - 1/game_config.FPS)
         self.move(px, py)
-        self.handle_self_collisions()
+        self.handle_self_collisions()    
+    

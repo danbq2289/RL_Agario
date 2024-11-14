@@ -17,11 +17,11 @@ class Game:
                 random.randint(0, self.config.GAME_HEIGHT),
                 (100 + random.randint(0, 155), 100 + random.randint(0, 155), 100 + random.randint(0, 155)),
                 name, mass=random.randint(200, 500)) for name in player_names[1:]]
-            
-            self.food = self.generate_food(self.config.INITIAL_FOOD_COUNT)
-            self.viruses = self.generate_viruses(self.config.INITIAL_VIRUS_COUNT)
         else:
             raise Exception("mode not supported")
+        
+        self.food = self.generate_food(self.config.INITIAL_FOOD_COUNT)
+        self.viruses = self.generate_viruses(self.config.INITIAL_VIRUS_COUNT)
 
     def update(self, actions):
         self.frame_counter = (self.frame_counter + 1) % self.config.FPS

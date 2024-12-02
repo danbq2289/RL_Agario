@@ -37,6 +37,7 @@ class GameConfig:
 
         self.VIRUS_AMOUNT_FEED_TO_SEPARATE = 7
         self.VIRUS_SEPARATION_MASS = self.VIRUS_INITIAL_MASS + self.VIRUS_AMOUNT_FEED_TO_SEPARATE * self.EJECTED_MASS
+        self.VIRUS_MAX_MASS = self.VIRUS_SEPARATION_MASS * 1.05
 
         self.MIN_PLAYER_MASS = 9
         self.MAX_PLAYER_MASS = 22500

@@ -5,36 +5,57 @@ import config
 game_config = config.GameConfig()
 
 """
-This dummy bot goes in roughly straight lines, regardless of who's ahead. 
+At level 1:
+This dummy bot goes in roughly straight lines, regardless of what's ahead. 
 Changes directions periodically.
+
+At level 2:
+In addition, if player with big mass is nearby, it runs away, and splits to escape if needed.
+
+At level 3:
+In addition, if player with small mass is nearby, chases it and splits to capture if it's possible.
 """
 class DummyBot:
-    def __init__(self, name):
+    def __init__(self, name, lvl=1):
         self.name = name
         self.counter = 0
         self.target = (0, 0)
+        self.lvl = lvl
 
     def get_action(self, game_state):
         # Extract the bot's position from the game state
         bot_state = next((player for player in game_state['players'] if player['name'] == self.name), None)
-
-        
-        # If player with small mass is nearby, split
-        if len(bot_state['cells']) == 1:
-            cell = bot_state['cells'][0]
-            for player in game_state['players']:
-                if player['name'] == self.name:
-                    continue
-                for other_cell in player['cells']:
-                    if math.sqrt((cell['x'] - other_cell['x'])**2 + (cell['y'] - other_cell['y'])**2) < 600:
-                        print("close")
-                        if cell['mass'] > game_config.MASS_FACTOR_EAT_ANOTHER*other_cell['mass']:
-                            # Chase
-                            return (other_cell['x'], other_cell['y'], cell['mass'] > 2*game_config.MASS_FACTOR_EAT_ANOTHER*other_cell['mass'], False)
-
-        
         if not bot_state:
             raise Exception("bot name not found in game")
+        
+        if self.lvl >= 2:
+            # If player with big mass is nearby, run away / split
+            for cell in sorted(bot_state['cells'], key=lambda c: c['mass'], reverse=True):
+                for player in game_state['players']:
+                    if player['name'] == self.name:
+                        continue
+                    for other_cell in player['cells']:
+                        distance_sq = (cell['x'] - other_cell['x'])**2 + (cell['y'] - other_cell['y'])**2
+                        if distance_sq < 500000:
+                            if other_cell['mass'] > game_config.MASS_FACTOR_EAT_ANOTHER*cell['mass']:
+                                # Run away
+                                self.target = (2*cell['x'] - other_cell['x'], 2*cell['y'] - other_cell['y'])
+                                return (*self.target, other_cell['mass'] > 2*game_config.MASS_FACTOR_EAT_ANOTHER*cell['mass'] and distance_sq < 360000, False)
+
+        if self.lvl >= 3:        
+            # If player with small mass is nearby, chase/split
+            for cell in sorted(bot_state['cells'], key=lambda c: c['mass'], reverse=True):
+                for player in game_state['players']:
+                    if player['name'] == self.name:
+                        continue
+                    for other_cell in player['cells']:
+                        distance_sq = (cell['x'] - other_cell['x'])**2 + (cell['y'] - other_cell['y'])**2
+                        if distance_sq < 500000: # 500^2
+                            if cell['mass'] > game_config.MASS_FACTOR_EAT_ANOTHER*other_cell['mass']:
+                                # Chase
+                                self.target = (other_cell['x'], other_cell['y'])
+                                return (*self.target, cell['mass'] > 2*game_config.MASS_FACTOR_EAT_ANOTHER*other_cell['mass'] and distance_sq < 250000, False)
+
 
         bot_x, bot_y = bot_state['x'], bot_state['y']
 

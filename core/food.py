@@ -34,6 +34,10 @@ class ThrownPellet:
     def update(self):
         self.x += self.vx
         self.y += self.vy
+
+        self.x = max(self.radius/2, min(self.x, game_config.GAME_WIDTH - self.radius/2))
+        self.y = max(self.radius/2, min(self.y, game_config.GAME_HEIGHT - self.radius/2))
+        
         self.vx *= 0.93
         self.vy *= 0.93
 

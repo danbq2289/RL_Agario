@@ -11,7 +11,7 @@ TODO:
 
 - set up environment
 
-- define get_env_state
+- define get_env_state, augment it with velocity of every cell (is this necessary tho? it might as well be the Markovian property. Include value function computing for other cells?)
 
 - train a basic RL bot:
 

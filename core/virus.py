@@ -25,6 +25,7 @@ class Virus:
 
     def grow(self, amount):
         self.mass += amount
+        self.mass = min(self.mass, game_config.VIRUS_MAX_MASS)
         self.update_radius_spikes()
 
     def can_eat(self, other):

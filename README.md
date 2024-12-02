@@ -8,6 +8,9 @@ so far there's the option to play with dummy bots:
 python main.py --mode human_with_dummies --num_dummies 5
 
 TODO:
+- use a config in game
+- add the player modality to get discrete actions
+- delete food ejecting
 
 - set up environment
 
@@ -25,6 +28,10 @@ TODO:
 What kind of insight do you seek -- about the algorithms or about the environments?
 Do you simply want to know if FeUdal Networks outperforms DQN / policy gradient on Agar.io?
 
+Want to know:
+- What kind of strategies the bots get with FeUdal networks. How to parse the Manager's goals?
+- See if statistically it's better.
+- See what works/doesn't work for DQN and A2C.
 
 
 optional:

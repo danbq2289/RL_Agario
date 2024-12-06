@@ -16,7 +16,7 @@ At level 3:
 In addition, if player with small mass is nearby, chases it and splits to capture if it's possible.
 """
 class DummyBot:
-    def __init__(self, name, lvl=1):
+    def __init__(self, name, lvl=3):
         self.name = name
         self.counter = 0
         self.target = (0, 0)
@@ -74,7 +74,7 @@ class DummyBot:
         target_x = bot_x + 1000 * math.cos(angle)
         target_y = bot_y + 1000 * math.sin(angle)
 
-        split = random.random() < 0.0005
-        feed = random.random() < 0.001
+        split = False # random.random() < 0.0005
+        feed = False # random.random() < 0.001
 
         return (target_x, target_y, split, feed)

@@ -1,0 +1,17 @@
+# # 47, epoch 1
+# print("def fib4(n: int):\n    \"\"\"The Fib4 number sequence is a sequence similar to the Fibbonacci sequnece that's defined as follows:\n    fib4(0) -> 0\n    fib4(1) -> 0\n    fib4(2) -> 2\n    fib4(3) -> 0\n    fib4(n) -> fib4(n-1) + fib4(n-2) + fib4(n-3) + fib4(n-4).\n    Please write a function to efficiently compute the n-th Fib4 number.\n    \"\"\"\n    if n == 0:\n        return 0\n    elif n == 1:\n        return 1\n    elif n == 2:\n        return 2\n    elif n == 3:\n        return 3\n    else:\n        return fib4(n-1) + fib4(n-2) + fib4(n-3) + fib4(n-4)<|endoftext|>")
+# # 47, epoch 4
+# print("def fib4(n: int):\n    \"\"\"The Fib4 number sequence is a sequence similar to the Fibbonacci sequnece that's defined as follows:\n    fib4(0) -> 0\n    fib4(1) -> 0\n    fib4(2) -> 2\n    fib4(3) -> 0\n    fib4(n) -> fib4(n-1) + fib4(n-2) + fib4(n-3) + fib4(n-4).\n    Please write a function to efficiently compute the n-th Fib4 number.\n    \"\"\"\n    if n == 0:\n        return 0\n    elif n == 1:\n        return 1\n    elif n == 2:\n        return 2\n    elif n == 3:\n        return 0\n    else:\n        return fib4(n-1) + fib4(n-2) + fib4(n-3) + fib4(n-4)<|endoftext|>")
+
+
+# #48, epoch 1
+# print("def median(l: list):\n    \"\"\"Return median of elements in the list l.\n    >>> median([3, 1, 2, 4, 5])\n    3\n    >>> median([-10, 4, 6, 1000, 10, 20])\n    15.0\n    \"\"\"\n    if len(l) == 0:\n        return None\n    return median(sorted(l, reverse=True))<|endoftext|>")
+# # 48, epoch 4
+# print("def median(l: list):\n    \"\"\"Return median of elements in the list l.\n    >>> median([3, 1, 2, 4, 5])\n    3\n    >>> median([-10, 4, 6, 1000, 10, 20])\n    15.0\n    \"\"\"\n    if len(l) == 0:\n        return None\n    if len(l) == 1:\n        return l[0]\n    return median(l[0:len(l) // 2])<|endoftext|>")
+
+
+# 14, epoch 1
+print("def greatest_common_divisor(a: int, b: int) -> int:\n    \"\"\" Return a greatest common divisor of two integers a and b\n    >>> greatest_common_divisor(3, 5)\n    1\n    >>> greatest_common_divisor(25, 15)\n    5\n    >>> greatest_common_divisor(25, 15)\n    5\n    >>> greatest_common_divisor(25, 15)\n    5\n    >>> greatest_common_divisor(25, 15)\n    5\n    >>> greatest_common_divisor(25, 15)\n    5\n    >>> greatest_common_divisor(25, 15)\n    5\n    >>> greatest_common_divisor(25, 15)\n    5\n    >>> greatest_common_divisor(25, 15)\n    5\n    >>> greatest_common_divisor(25, 15)\n    5\n    >>> greatest_common_divisor(25, 15)\n    5\n    >>> greatest_common_divisor(25, 15)\n    5\n    >>> greatest_common_divisor(25, 15)\n    5\n    >>> greatest_common_divisor(25, 15)\n    5\n    >>> greatest_common_divisor(25, 15)\n    5\n    >>> greatest_common_divisor(25, 15)\n    5\n    >>> greatest_common_divisor(25, 15)\n    5\n    >>> greatest_common_divisor(25, 15)\n    5\n ")
+
+# 14, epoch 4
+print("def greatest_common_divisor(a: int, b: int) -> int:\n    \"\"\" Return a greatest common divisor of two integers a and b\n    >>> greatest_common_divisor(3, 5)\n    1\n    >>> greatest_common_divisor(25, 15)\n    5\n    \"\"\"\n    if a == 0 or b == 0:\n        return 0\n    if a == b:\n        return a\n    if a > b:\n        return greatest_common_divisor(a - 1, b)\n    else:\n        return greatest_common_divisor(a, b - 1)<|endoftext|>")

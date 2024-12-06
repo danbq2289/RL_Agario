@@ -58,6 +58,9 @@ class GameConfig:
         self.CLOSENESS_FACTOR = 0.25
 
         # RL training
+        self.TOTAL_DIRECTIONS = 16
+        self.DISCRETE_FACTOR_DISTANCE = 2.5
+
         self.MAX_STEPS = 10000  # Maximum steps per episode
         self.REWARD_FOOD = 1
         self.REWARD_PLAYER = 10

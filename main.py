@@ -6,13 +6,14 @@ from visualization.pygame_renderer import PygameRenderer
 from bots.basic_bots import DummyBot
 # from bots.rl_bot import RLBot
 import config
+game_config = config.GameConfig()
 
-def human_play_with_dummies(game_config, n_dummies):
+def human_play_with_dummies(n_dummies):
     if n_dummies > game_config.MAX_PLAYERS:
         raise Exception("might lag. bypass if you want (config.py), but you have been warned")
     renderer = PygameRenderer(game_config)
     dummy_names = [f"dum{i}" for i in range(1, n_dummies+1)]
-    game = Game(["Human"] + dummy_names, game_config, "human_with_dummies")
+    game = Game(["Human"] + dummy_names, "single_with_dummies")
 
     dummy_bots = [DummyBot(name) for name in dummy_names]
 
@@ -57,7 +58,7 @@ def human_play_with_dummies(game_config, n_dummies):
         clock.tick(game_config.FPS)
     renderer.close()
 
-def bot_test(game_config, num_bots=3, visualize=True):
+def bot_test(num_bots=3, visualize=True):
     # bots = [RandomBot() for _ in range(num_bots)]
     # env = AgarEnvironment(game_config, bots, visualize=visualize)
     
@@ -72,7 +73,7 @@ def bot_test(game_config, num_bots=3, visualize=True):
     # env.close()
     pass
 
-def train_rl(game_config, num_episodes=1000, visualize=False):
+def train_rl(num_episodes=1000, visualize=False):
     # rl_bot = RLBot()
     # env = AgarEnvironment(game_config, [rl_bot], visualize=visualize)
 
@@ -103,11 +104,9 @@ if __name__ == "__main__":
     # parser.add_argument("--visualize", action="store_true", help="Enable visualization for bot_test and train modes")
     args = parser.parse_args()
 
-    game_config = config.GameConfig()
-
     if args.mode == "human_with_dummies":
-        human_play_with_dummies(game_config, int(args.num_dummies))
+        human_play_with_dummies(int(args.num_dummies))
     # elif args.mode == "bot_test":
-    #     bot_test(game_config, visualize=args.visualize)
+    #     bot_test(visualize=args.visualize)
     # elif args.mode == "train":
-    #     train_rl(game_config, visualize=args.visualize)
+    #     train_rl(visualize=args.visualize)

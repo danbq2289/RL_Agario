@@ -7,36 +7,60 @@ Installation instructions:
 so far there's the option to play with dummy bots:
 python main.py --mode human_with_dummies --num_dummies 5
 
+done so far:
+- added player's capability to get discrete actions
+- deleted food ejecting (or just ignored it, the bots can't food eject for now)
+
 TODO:
-- use a config in game
-- add the player modality to get discrete actions
-- delete food ejecting
+- Multi player training:
+   - Change game to not receive mode. Doesn't matter. (game, main)
+   - Improve the part of code that resets players. Just build a set and take them down
+   - Add a mode to return information respect to a player.
 
-- set up environment
+- Build environment:
+   - Design it in paper.
+      a. Actions: 0-15 for directions, 16-31 for splitting, 32 for no op.
+      b. Rewards: Let it be the size difference between frames.
+      c. Observation space: 
+         - Cells (with masses) inside the frame, max 20-30. Ask what to do if not max. Set them inside the circle?
+         - Food inside the frame as well. 
+         - Viruses inside the frame as well.
+   - Let the environment take a game
+   - Think about how you will test this with many controllers
 
-- define get_env_state, augment it with velocity of every cell (is this necessary tho? it might as well be the Markovian property. Include value function computing for other cells?)
+- Benchmarking
+   - Logging each player's mass through time
+   - Log each player's average size, max size. (Check how the players are indexed in Game)
 
-- train a basic RL bot:
-
-- DQN
-
-- A2C/Policy gradient:
-
-- Feudal:
+- Applying DQN
+   - See if you can train multiple bots at the same time. That would be awesome.
+   - See if you need a buffer, or how you should implement it.
+   - See how long the training will be. If too long, just reduce the epochs or something.
 
 
-What kind of insight do you seek -- about the algorithms or about the environments?
-Do you simply want to know if FeUdal Networks outperforms DQN / policy gradient on Agar.io?
+- Applying Feudal Networks
+   - Figure out the environment replacement
+   - Fix any bugs
+   - Figure out benchmarking
 
-Want to know:
-- What kind of strategies the bots get with FeUdal networks. How to parse the Manager's goals?
-- See if statistically it's better.
-- See what works/doesn't work for DQN and A2C.
+
+- Write the report 
+   - Do this at the same time as the experiments
+   - Record videos of the bots playing against each other
+
+- Prepare the repo
+   - Cite the guy that implemented FUN
+   - Rewrite the README
+
+
+
+
+- Define rewards
+- Define actions: include 0 for no op, and make sure it makes sense if it's the center
+- Think about how to make two bots compete with each other:
+   a. The environment passes as first 16 arguments the locations/masses of the cells. (12 by default)
+   b. So for different players, just reformat the space. Include the self player first.
 
 
 optional:
-- more order in config: pass params to game, player instead of creating a config (might not be good)
-- the action right now is (mouse pos, do_splitting), might change to either mouse_pos or do_splitting, but this is harder to work with
-
 - the movement equations are done per frame, so if FPS is changed then the equations change a lot. maybe correct this. not necessary.
-- clean config, ask how to best do it

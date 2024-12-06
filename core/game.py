@@ -3,25 +3,26 @@ from core.player import Player
 from core.food import Pellet
 from core.virus import Virus
 import random
+import config
+game_config = config.GameConfig()
 
 class Game:
-    def __init__(self, player_names, config, mode):
-        self.config = config
+    def __init__(self, player_names, mode):
         self.frame_counter = 0
-        if mode == "human_with_dummies":
+        if mode == "single_with_dummies":
             first_player = Player(3000, 3000, (250, 150, 0), player_names[0])
 
             # dummy bots
             self.players = [first_player] + [Player(
-                random.randint(0, self.config.GAME_WIDTH), 
-                random.randint(0, self.config.GAME_HEIGHT),
+                random.randint(0, game_config.GAME_WIDTH), 
+                random.randint(0, game_config.GAME_HEIGHT),
                 (100 + random.randint(0, 155), 100 + random.randint(0, 155), 100 + random.randint(0, 155)),
                 name, mass=random.randint(80, 200)) for name in player_names[1:]]
         else:
             raise Exception("mode not supported")
         
-        self.food = self.generate_food(self.config.INITIAL_FOOD_COUNT)
-        self.viruses = self.generate_viruses(self.config.INITIAL_VIRUS_COUNT)
+        self.food = self.generate_food(game_config.INITIAL_FOOD_COUNT)
+        self.viruses = self.generate_viruses(game_config.INITIAL_VIRUS_COUNT)
         self.ejected_food = []
 
     def ejected_food_update(self):
@@ -32,7 +33,7 @@ class Game:
         """Checks for separation, separates, and then calls update for every virus"""
         new_viruses = []
         for virus in sorted(self.viruses, key=lambda c: c.mass, reverse=True):
-            if len(self.viruses) + len(new_viruses) >= self.config.MAX_VIRUS_COUNT_SEPARATION:
+            if len(self.viruses) + len(new_viruses) >= game_config.MAX_VIRUS_COUNT_SEPARATION:
                 break
             new_virus = virus.separate()
             if new_virus:
@@ -47,7 +48,7 @@ class Game:
             virus.update()
 
     def update(self, actions):
-        self.frame_counter = (self.frame_counter + 1) % self.config.FPS
+        self.frame_counter = (self.frame_counter + 1) % game_config.FPS
         for player, action in zip(self.players, actions):
             ejected_food_player = player.update(action)  # Handles self collisions
             self.ejected_food.extend(ejected_food_player)
@@ -68,23 +69,23 @@ class Game:
         }
     
     def generate_food(self, amount):
-        return [Pellet(random.randint(0, self.config.GAME_WIDTH),
-                    random.randint(0, self.config.GAME_HEIGHT),
-                    (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)), self.config.PELLET_MASS)
+        return [Pellet(random.randint(0, game_config.GAME_WIDTH),
+                    random.randint(0, game_config.GAME_HEIGHT),
+                    (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)), game_config.PELLET_MASS)
             for _ in range(amount)]
     
     def spawn_food(self):
-        if len(self.food) < self.config.MAX_FOOD_COUNT:
-            new_food_count = min(self.config.FOOD_SPAWN_RATE, self.config.MAX_FOOD_COUNT - len(self.food))
+        if len(self.food) < game_config.MAX_FOOD_COUNT:
+            new_food_count = min(game_config.FOOD_SPAWN_RATE, game_config.MAX_FOOD_COUNT - len(self.food))
             self.food.extend(self.generate_food(new_food_count))
 
     def generate_viruses(self, amount):
-        return [Virus(random.randint(0, self.config.GAME_WIDTH),
-                    random.randint(0, self.config.GAME_HEIGHT)) for _ in range(amount)]
+        return [Virus(random.randint(0, game_config.GAME_WIDTH),
+                    random.randint(0, game_config.GAME_HEIGHT)) for _ in range(amount)]
     
     def spawn_viruses(self):
-        if len(self.viruses) < self.config.MAX_VIRUS_COUNT_GENERATED:
-            new_viruses_count = min(self.config.VIRUS_SPAWN_RATE, self.config.MAX_VIRUS_COUNT_GENERATED - len(self.viruses))
+        if len(self.viruses) < game_config.MAX_VIRUS_COUNT_GENERATED:
+            new_viruses_count = min(game_config.VIRUS_SPAWN_RATE, game_config.MAX_VIRUS_COUNT_GENERATED - len(self.viruses))
             self.viruses.extend(self.generate_viruses(new_viruses_count))
 
     def handle_collisions(self):

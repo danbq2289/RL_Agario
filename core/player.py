@@ -5,7 +5,6 @@ from core.food import ThrownPellet
 
 game_config = config.GameConfig()
 
-player_initial_mass = 10
 class Cell:
     def __init__(self, x, y, color, name, mass, vx=0, vy=0):
         self.x = x

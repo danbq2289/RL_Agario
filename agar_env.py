@@ -3,16 +3,17 @@ from gym import spaces
 import numpy as np
 from core.game import Game
 import config
+game_config = config.GameConfig()
 
 OBSERVATION_SIZE = 100  # set this in config
 class AgarEnv(gym.Env):
-    def __init__(self):
+    def __init__(self, game, player_idx):
         super(AgarEnv, self).__init__()
-        self.game_config = config.GameConfig()
-        self.game = Game(["DQN_Agent"], self.game_config, mode="single_with_dummies")
+        self.game = game
+        self.player_idx = player_idx
         
         # Define action and observation space
-        self.action_space = spaces.Discrete(32)  # 16 directions, 16 directions plus split
+        self.action_space = spaces.Discrete(33)  # 16 directions, 16 directions plus split, one where you "put the mouse in the center" (reunite cells)
         
         # Observation space will be a flattened array of normalized values
         self.observation_space = spaces.Box(low=0, high=1, shape=(OBSERVATION_SIZE,), dtype=np.float32)

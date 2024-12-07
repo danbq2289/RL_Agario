@@ -19,6 +19,8 @@ class GameConfig:
 
         # Game rules
         self.MAX_PLAYERS = 20
+        self.INITIAL_SEPARATION_MIN = 1000  # assuming 20 players or less
+        
         self.INITIAL_PLAYER_MASS = 100
 
         self.PELLET_MASS = 1
@@ -65,9 +67,6 @@ class GameConfig:
         self.REWARD_FOOD = 1
         self.REWARD_PLAYER = 10
         self.REWARD_DEATH = -50
-
-        # Action space
-        self.ACTION_SPACE = 8  # Number of discrete directions
 
         # Observation space
         self.VIEW_DISTANCE = 200  # Pixels

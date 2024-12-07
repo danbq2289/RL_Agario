@@ -13,7 +13,7 @@ def human_play_with_dummies(n_dummies):
         raise Exception("might lag. bypass if you want (config.py), but you have been warned")
     renderer = PygameRenderer(game_config)
     dummy_names = [f"dum{i}" for i in range(1, n_dummies+1)]
-    game = Game(["Human"] + dummy_names, "single_with_dummies")
+    game = Game(["Human"] + dummy_names, non_dummy_players=1)
 
     dummy_bots = [DummyBot(name) for name in dummy_names]
 

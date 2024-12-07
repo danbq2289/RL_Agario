@@ -10,23 +10,27 @@ python main.py --mode human_with_dummies --num_dummies 5
 done so far:
 - added player's capability to get discrete actions
 - deleted food ejecting (or just ignored it, the bots can't food eject for now)
+- Change game to not receive mode. Doesn't matter. (game, main) Now it receives how many non-dummy players.
+  Sets the initial mass of dummies to rand(50, 200) and non-dummies to 100.
+- Improve the part of code that resets players. Just build a set and take them down
 
 TODO:
-- Multi player training:
-   - Change game to not receive mode. Doesn't matter. (game, main)
-   - Improve the part of code that resets players. Just build a set and take them down
-   - Add a mode to return information respect to a player.
+- Multi player preparation: 
+   
+   - Add a mode to return information respect to a player. (game get observation, player index i)
+   - Think about how you will test this with many controllers (simple enough. initialize the game, the networks, 
+     take the function for every player, plug in, get actions, put actions)
 
 - Build environment:
-   - Design it in paper.
+   - Design it in paper. 
+   - Tradeoff: fixed players or not?
       a. Actions: 0-15 for directions, 16-31 for splitting, 32 for no op.
       b. Rewards: Let it be the size difference between frames.
       c. Observation space: 
          - Cells (with masses) inside the frame, max 20-30. Ask what to do if not max. Set them inside the circle?
          - Food inside the frame as well. 
          - Viruses inside the frame as well.
-   - Let the environment take a game
-   - Think about how you will test this with many controllers
+   
 
 - Benchmarking
    - Logging each player's mass through time
@@ -51,6 +55,7 @@ TODO:
 - Prepare the repo
    - Cite the guy that implemented FUN
    - Rewrite the README
+   - Clean the code: replace get_state with get_state_for_drawing
 
 
 
@@ -64,3 +69,4 @@ TODO:
 
 optional:
 - the movement equations are done per frame, so if FPS is changed then the equations change a lot. maybe correct this. not necessary.
+- How to multitrain? Create two (or many) environments. Covering a game object. Augment the previous scores for the rewards. (This is hard. Maybe later)

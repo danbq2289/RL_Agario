@@ -2,24 +2,55 @@
 from core.player import Player
 from core.food import Pellet
 from core.virus import Virus
+import math
 import random
 import config
 game_config = config.GameConfig()
 
-class Game:
-    def __init__(self, player_names, mode):
-        self.frame_counter = 0
-        if mode == "single_with_dummies":
-            first_player = Player(3000, 3000, (250, 150, 0), player_names[0])
+def generate_points(rect_width, rect_height, min_distance, num_points):
+    points = []
+    attempts = 0
+    max_attempts = num_points * 10  # Limit total attempts to avoid infinite loop
 
-            # dummy bots
-            self.players = [first_player] + [Player(
-                random.randint(0, game_config.GAME_WIDTH), 
-                random.randint(0, game_config.GAME_HEIGHT),
-                (100 + random.randint(0, 155), 100 + random.randint(0, 155), 100 + random.randint(0, 155)),
-                name, mass=random.randint(80, 200)) for name in player_names[1:]]
-        else:
-            raise Exception("mode not supported")
+    while len(points) < num_points and attempts < max_attempts:
+        x = random.uniform(0, rect_width)
+        y = random.uniform(0, rect_height)
+        new_point = (x, y)
+
+        if all(math.dist(new_point, p) >= min_distance for p in points):
+            points.append(new_point)
+        
+        attempts += 1
+
+    while len(points) < num_points:
+        x = random.uniform(0, rect_width)
+        y = random.uniform(0, rect_height)
+        points.append((x, y))
+
+    return points
+
+class Game:
+    def __init__(self, player_names, non_dummy_players):
+        self.frame_counter = 0
+
+        assert non_dummy_players <= len(player_names)
+
+        # What is the initial mass and radius of non-dummy players? 100, 100
+        # What is a reasonable minimum distance? 1000 (from 6000x6000)
+
+        points = generate_points(game_config.GAME_WIDTH, game_config.GAME_HEIGHT, 
+                                 game_config.INITIAL_SEPARATION_MIN, len(player_names))
+        
+        # Non dummy players
+        non_dummy_players_list = [Player(point[0], point[1],
+            (100 + random.randint(0, 155), 100 + random.randint(0, 155), 100 + random.randint(0, 155)),
+            name) for name, point in zip(player_names[:non_dummy_players], points[:non_dummy_players])]
+
+        # dummy bots
+        self.players = non_dummy_players_list + [Player(point[0], point[1],
+            (100 + random.randint(0, 155), 100 + random.randint(0, 155), 100 + random.randint(0, 155)),
+            name, mass=random.randint(50, 200)) for name, point in zip(player_names[non_dummy_players:], points[non_dummy_players:])]
+
         
         self.food = self.generate_food(game_config.INITIAL_FOOD_COUNT)
         self.viruses = self.generate_viruses(game_config.INITIAL_VIRUS_COUNT)
@@ -55,10 +86,15 @@ class Game:
         
         self.ejected_food_update()
         self.virus_update()
-        self.handle_collisions()  # Collisions with food and player to player
+        reset_player_names = self.handle_collisions()  # Collisions with food and player to player
         if self.frame_counter == 0:
             self.spawn_food()
             self.spawn_viruses()
+
+    def get_RL_state(self, player_index):
+        obs = []
+        player = self.players[player_index]
+
 
     def get_state(self):
         return {
@@ -92,7 +128,10 @@ class Game:
         for virus in self.viruses:
             self.ejected_food = [e for e in self.ejected_food if not virus.eat(e)]
 
+        reset_players = set()
         for i, player in enumerate(self.players):
+            if player.name in reset_players:
+                continue
             # Check for food collisions
             self.food = [f for f in self.food if not player.eat(f)]
 
@@ -104,10 +143,20 @@ class Game:
 
             # Check for player collisions
             for j, other_player in enumerate(self.players):
-                if i != j:
-                    for other_cell in other_player.cells:
+                if i != j and other_player.name not in reset_players:
+                    for other_cell in other_player.cells[:]:  # Iterate over a copy to avoid issues with modification
                         if player.eat(other_cell):
                             other_player.cells.remove(other_cell)
                             if len(other_player.cells) == 0:
-                                other_player.reset()
+                                # Don't check that player anymore and schedule for resetting
+                                reset_players.add(other_player.name)
+
+        for player in self.players:
+            if len(player.cells) == 0:
+                if player.name not in reset_players:
+                    raise Exception("Something went wrong with the resetting")
+                player.reset()
+            elif player.name in reset_players:
+                raise Exception("Something went wrong with the resetting")
+        return reset_players
     

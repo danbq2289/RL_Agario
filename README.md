@@ -14,12 +14,15 @@ done so far:
   Sets the initial mass of dummies to rand(50, 200) and non-dummies to 100.
 - Improve the part of code that resets players. Just build a set and take them down
 
+- Think about how you will test this with many controllers (simple enough. initialize the game, the networks, 
+     take the function for every player, plug in, get actions, put actions)
+
 TODO:
 - Multi player preparation: 
    
    - Add a mode to return information respect to a player. (game get observation, player index i)
-   - Think about how you will test this with many controllers (simple enough. initialize the game, the networks, 
-     take the function for every player, plug in, get actions, put actions)
+      a. How to get the normalizing? What dimensions are the agents seeing?
+      b. Once this is done, will the game be slow?
 
 - Build environment:
    - Design it in paper. 

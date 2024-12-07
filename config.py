@@ -20,7 +20,7 @@ class GameConfig:
         # Game rules
         self.MAX_PLAYERS = 20
         self.INITIAL_SEPARATION_MIN = 1000  # assuming 20 players or less
-        
+
         self.INITIAL_PLAYER_MASS = 100
 
         self.PELLET_MASS = 1
@@ -42,7 +42,7 @@ class GameConfig:
         self.VIRUS_MAX_MASS = self.VIRUS_SEPARATION_MASS * 1.05
 
         self.MIN_PLAYER_MASS = 9
-        self.MAX_PLAYER_MASS = 22500
+        self.MAX_PLAYER_MASS = 10000
         self.MASS_LOSS_RATE = 0.002
 
         self.MAX_AMOUNT_CELLS = 16

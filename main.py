@@ -13,7 +13,9 @@ def human_play_with_dummies(n_dummies):
         raise Exception("might lag. bypass if you want (config.py), but you have been warned")
     renderer = PygameRenderer(game_config)
     dummy_names = [f"dum{i}" for i in range(1, n_dummies+1)]
+    
     game = Game(["Human"] + dummy_names, non_dummy_players=1)
+    game_state = game.get_state() # initial game state
 
     dummy_bots = [DummyBot(name) for name in dummy_names]
 
@@ -50,28 +52,53 @@ def human_play_with_dummies(n_dummies):
         else:
             do_feed = False
 
-        # initial game state
-        game_state = game.get_state()
+        
         game.update([(action_x, action_y, do_split, do_feed)] + [dummy_bot.get_action(game_state) for dummy_bot in dummy_bots])
         game_state = game.get_state()
         renderer.render(game_state)
         clock.tick(game_config.FPS)
     renderer.close()
 
-def bot_test(num_bots=3, visualize=True):
-    # bots = [RandomBot() for _ in range(num_bots)]
-    # env = AgarEnvironment(game_config, bots, visualize=visualize)
+def basic_bot_test(n_dummies=3, visualize=True):
+    # For benchmarking the bots.
     
-    # for _ in range(game_config.MAX_STEPS):
-    #     actions = [bot.get_action(env.game.get_state()) for bot in bots]
-    #     _, _, done, _ = env.step(actions)
-    #     env.render()
-        
-    #     if done:
-    #         break
+    dummy_names = [f"dum{i}" for i in range(n_dummies)]
+    game = Game(dummy_names, non_dummy_players=0)
+    game_state = game.get_state() # initial game state
+    dummy_bots = [DummyBot(name) for name in dummy_names]
     
-    # env.close()
-    pass
+    import time
+    max_steps = 1000
+
+    if visualize:
+        renderer = PygameRenderer(game_config)
+        clock = pygame.time.Clock()
+        running = True
+        st = time.time()
+        while running and max_steps > 0:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    running = False
+
+            game.update([dummy_bot.get_action(game_state) for dummy_bot in dummy_bots])
+            game_state = game.get_state()
+            renderer.render(game_state)
+            clock.tick(game_config.FPS)
+            max_steps -= 1
+        renderer.close()
+        end = time.time()
+        print(f"Ran in {end - st} seconds")
+
+    else:
+        print("Starting")
+        st = time.time()
+        while max_steps > 0:
+            game.update([dummy_bot.get_action(game_state) for dummy_bot in dummy_bots])
+            game_state = game.get_state()
+            max_steps -= 1
+        end = time.time()
+        print(f"Ran in {end - st} seconds")
+
 
 def train_rl(num_episodes=1000, visualize=False):
     # rl_bot = RLBot()
@@ -99,14 +126,14 @@ def train_rl(num_episodes=1000, visualize=False):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Agar.io RL Environment")
-    parser.add_argument("--mode", choices=["human_with_dummies", "bot_test", "train"], default="human_with_dummies", help="Mode of operation")
+    parser.add_argument("--mode", choices=["human_with_dummies", "basic_bot_test", "train"], default="human_with_dummies", help="Mode of operation")
     parser.add_argument("--num_dummies")
-    # parser.add_argument("--visualize", action="store_true", help="Enable visualization for bot_test and train modes")
+    parser.add_argument("--visualize", action="store_true", help="Enable visualization for bot_test and train modes")
     args = parser.parse_args()
 
     if args.mode == "human_with_dummies":
         human_play_with_dummies(int(args.num_dummies))
-    # elif args.mode == "bot_test":
-    #     bot_test(visualize=args.visualize)
+    elif args.mode == "basic_bot_test":
+        basic_bot_test(int(args.num_dummies), visualize=args.visualize)
     # elif args.mode == "train":
     #     train_rl(visualize=args.visualize)

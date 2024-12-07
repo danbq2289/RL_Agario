@@ -33,10 +33,7 @@ class Game:
     def __init__(self, player_names, non_dummy_players):
         self.frame_counter = 0
 
-        assert non_dummy_players <= len(player_names)
-
-        # What is the initial mass and radius of non-dummy players? 100, 100
-        # What is a reasonable minimum distance? 1000 (from 6000x6000)
+        assert 0 <= non_dummy_players <= len(player_names)
 
         points = generate_points(game_config.GAME_WIDTH, game_config.GAME_HEIGHT, 
                                  game_config.INITIAL_SEPARATION_MIN, len(player_names))
@@ -91,9 +88,55 @@ class Game:
             self.spawn_food()
             self.spawn_viruses()
 
+        return reset_player_names
+
     def get_RL_state(self, player_index):
         obs = []
         player = self.players[player_index]
+        
+        # Calculate visible area
+        view_width = game_config.WIDTH / player.cells[0].radius
+        view_height = game_config.HEIGHT / player.cells[0].radius
+        view_left = player.cells[0].x - view_width / 2
+        view_top = player.cells[0].y - view_height / 2
+        
+        # Cells (max 20)
+        visible_cells = []
+        for p in self.players:
+            for cell in p.cells:
+                if (view_left <= cell.x <= view_left + view_width and
+                    view_top <= cell.y <= view_top + view_height):
+                    visible_cells.append((cell.x, cell.y, cell.mass))
+        
+        visible_cells.sort(key=lambda c: c[2], reverse=True)  # Sort by mass
+        for i in range(20):
+            if i < len(visible_cells):
+                x, y, mass = visible_cells[i]
+                obs.extend([(x - view_left) / view_width, (y - view_top) / view_height, mass / game_config.MAX_PLAYER_MASS])
+            else:
+                obs.extend([0, 0, 0])  # Padding
+        
+        # Food (max 100)
+        visible_food = [f for f in self.food if (view_left <= f.x <= view_left + view_width and
+                                                view_top <= f.y <= view_top + view_height)]
+        for i in range(100):
+            if i < len(visible_food):
+                obs.extend([(visible_food[i].x - view_left) / view_width, 
+                            (visible_food[i].y - view_top) / view_height])
+            else:
+                obs.extend([0, 0])  # Padding
+        
+        # Viruses (max 10)
+        visible_viruses = [v for v in self.viruses if (view_left <= v.x <= view_left + view_width and
+                                                    view_top <= v.y <= view_top + view_height)]
+        for i in range(10):
+            if i < len(visible_viruses):
+                obs.extend([(visible_viruses[i].x - view_left) / view_width, 
+                            (visible_viruses[i].y - view_top) / view_height])
+            else:
+                obs.extend([0, 0])  # Padding
+        
+        return obs
 
 
     def get_state(self):

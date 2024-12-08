@@ -18,6 +18,29 @@ done so far:
      take the function for every player, plug in, get actions, put actions)
 
 TODO:
+- Benchmarking preparation:
+
+   - With or without visualization, find how many frames you can run per second/minute. Try:
+         a. Using game state normally (done)
+         b. Modifying the basic bots to use game only
+
+         f. Compare
+
+         c. Further modifications
+            - TODO: Optimize basic bot code (index of dummy, for example)
+      
+   - basic_bot_test (with and without visualization), and plot the total size.
+
+   
+
+   - Plot the size evolution. Try:
+      a. All frames
+      b. Skipped frames
+      c. First episode
+      d. Max size in each episode
+
+   - Then, formalize this in an object augmented to the game that appends the total size.
+
 - Multi player preparation: 
    
    - Add a mode to return information respect to a player. (game get observation, player index i)

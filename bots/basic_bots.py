@@ -22,42 +22,39 @@ class DummyBot:
         self.target = (0, 0)
         self.lvl = lvl
 
-    def get_action(self, game_state):
+    def get_action(self, game):
         # Extract the bot's position from the game state
-        bot_state = next((player for player in game_state['players'] if player['name'] == self.name), None)
-        if not bot_state:
+        bot_player = next((player for player in game.players if player.name == self.name), None)
+        if not bot_player:
             raise Exception("bot name not found in game")
         
         if self.lvl >= 2:
             # If player with big mass is nearby, run away / split
-            for cell in sorted(bot_state['cells'], key=lambda c: c['mass'], reverse=True):
-                for player in game_state['players']:
-                    if player['name'] == self.name:
+            for cell in sorted(bot_player.cells, key=lambda c: c.mass, reverse=True):
+                for player in game.players:
+                    if player.name == self.name:  # can just check if index is different
                         continue
-                    for other_cell in player['cells']:
-                        distance_sq = (cell['x'] - other_cell['x'])**2 + (cell['y'] - other_cell['y'])**2
+                    for other_cell in player.cells:
+                        distance_sq = (cell.x - other_cell.x)**2 + (cell.y - other_cell.y)**2
                         if distance_sq < 500000:
-                            if other_cell['mass'] > game_config.MASS_FACTOR_EAT_ANOTHER*cell['mass']:
+                            if self.lvl >= 3:
+                                # Check if smaller cell first. (lvl3 should be aggressive)
+                                critical_mass_other = game_config.MASS_FACTOR_EAT_ANOTHER*other_cell.mass
+                                if cell.mass > critical_mass_other:
+                                    # Chase
+                                    self.target = (other_cell.x, other_cell.y)
+                                    potential_kill = 6*critical_mass_other > cell.mass > 2*critical_mass_other and distance_sq < 360000
+                                    return (*self.target, potential_kill, False)
+                            
+                            critical_mass = game_config.MASS_FACTOR_EAT_ANOTHER*cell.mass
+                            if other_cell.mass > critical_mass:
                                 # Run away
-                                self.target = (2*cell['x'] - other_cell['x'], 2*cell['y'] - other_cell['y'])
-                                return (*self.target, other_cell['mass'] > 2*game_config.MASS_FACTOR_EAT_ANOTHER*cell['mass'] and distance_sq < 360000, False)
+                                self.target = (2*cell.x - other_cell.x, 2*cell.y - other_cell.y)
+                                potential_death = 6*critical_mass > other_cell.mass > 2*critical_mass and distance_sq < 360000
+                                return (*self.target, potential_death, False)
 
-        if self.lvl >= 3:        
-            # If player with small mass is nearby, chase/split
-            for cell in sorted(bot_state['cells'], key=lambda c: c['mass'], reverse=True):
-                for player in game_state['players']:
-                    if player['name'] == self.name:
-                        continue
-                    for other_cell in player['cells']:
-                        distance_sq = (cell['x'] - other_cell['x'])**2 + (cell['y'] - other_cell['y'])**2
-                        if distance_sq < 500000: # 500^2
-                            if cell['mass'] > game_config.MASS_FACTOR_EAT_ANOTHER*other_cell['mass']:
-                                # Chase
-                                self.target = (other_cell['x'], other_cell['y'])
-                                return (*self.target, cell['mass'] > 2*game_config.MASS_FACTOR_EAT_ANOTHER*other_cell['mass'] and distance_sq < 250000, False)
-
-
-        bot_x, bot_y = bot_state['x'], bot_state['y']
+        max_cell = max(bot_player.cells, key=lambda c: c.radius)
+        bot_x, bot_y = max_cell.x, max_cell.y
 
         if self.counter <= 0:
             # Choose new point target

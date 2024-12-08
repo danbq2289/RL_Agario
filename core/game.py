@@ -196,10 +196,6 @@ class Game:
 
         for player in self.players:
             if len(player.cells) == 0:
-                if player.name not in reset_players:
-                    raise Exception("Something went wrong with the resetting")
                 player.reset()
-            elif player.name in reset_players:
-                raise Exception("Something went wrong with the resetting")
         return reset_players
     

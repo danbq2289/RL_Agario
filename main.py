@@ -1,4 +1,5 @@
 import argparse
+import time
 import pygame
 from core.game import Game
 # from environment import AgarEnvironment
@@ -53,51 +54,52 @@ def human_play_with_dummies(n_dummies):
             do_feed = False
 
         
-        game.update([(action_x, action_y, do_split, do_feed)] + [dummy_bot.get_action(game_state) for dummy_bot in dummy_bots])
+        game.update([(action_x, action_y, do_split, do_feed)] + [dummy_bot.get_action(game) for dummy_bot in dummy_bots])
         game_state = game.get_state()
         renderer.render(game_state)
         clock.tick(game_config.FPS)
     renderer.close()
 
-def basic_bot_test(n_dummies=3, visualize=True):
+def basic_bot_test(n_dummies, visualize):
     # For benchmarking the bots.
-    
     dummy_names = [f"dum{i}" for i in range(n_dummies)]
-    game = Game(dummy_names, non_dummy_players=0)
-    game_state = game.get_state() # initial game state
     dummy_bots = [DummyBot(name) for name in dummy_names]
     
-    import time
-    max_steps = 1000
+    time_intervals = []
+    for i in range(100):
+        game = Game(dummy_names, non_dummy_players=0)
+        max_steps = 1000
 
-    if visualize:
-        renderer = PygameRenderer(game_config)
-        clock = pygame.time.Clock()
-        running = True
-        st = time.time()
-        while running and max_steps > 0:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    running = False
+        if visualize:
+            renderer = PygameRenderer(game_config)
+            clock = pygame.time.Clock()
+            running = True
+            st = time.time()
+            while running and max_steps > 0:
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        running = False
 
-            game.update([dummy_bot.get_action(game_state) for dummy_bot in dummy_bots])
-            game_state = game.get_state()
-            renderer.render(game_state)
-            clock.tick(game_config.FPS)
-            max_steps -= 1
-        renderer.close()
-        end = time.time()
-        print(f"Ran in {end - st} seconds")
+                game.update([dummy_bot.get_action(game) for dummy_bot in dummy_bots])
+                game_state = game.get_state()
+                renderer.render(game_state)
+                clock.tick(game_config.FPS)
+                max_steps -= 1
+            renderer.close()
+            end = time.time()
+            print(f"Ran in {end - st} seconds")
 
-    else:
-        print("Starting")
-        st = time.time()
-        while max_steps > 0:
-            game.update([dummy_bot.get_action(game_state) for dummy_bot in dummy_bots])
-            game_state = game.get_state()
-            max_steps -= 1
-        end = time.time()
-        print(f"Ran in {end - st} seconds")
+        else:
+            st = time.time()
+            while max_steps > 0:
+                game.update([dummy_bot.get_action(game) for dummy_bot in dummy_bots])
+                max_steps -= 1
+            end = time.time()
+            print(f"Ran in {end - st} seconds")
+
+        time_intervals.append(end - st)
+
+    print(time_intervals)
 
 
 def train_rl(num_episodes=1000, visualize=False):

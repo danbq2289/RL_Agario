@@ -30,6 +30,7 @@ def generate_points(rect_width, rect_height, min_distance, num_points):
     return points
 
 class SpatialGrid:
+    # For optimization.
     def __init__(self, cell_size):
         self.cell_size = cell_size
         self.grid = {}

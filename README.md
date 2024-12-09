@@ -1,8 +1,8 @@
 Installation instructions:
 
-1. conda create -n HRL python=3.12
+1. conda create -n HRL python=3.10
 2. conda activate HRL
-3. conda install pytorch pygame
+3. conda install pytorch pygame gym
 
 Play with dummy bots:
 python main.py --mode human_with_dummies --num_dummies 5
@@ -12,6 +12,9 @@ python main.py --mode basic_bot_test --num_dummies 20 --high 4 --low 1 --num_gam
 
 Benchmarking bots:
 python main.py --mode basic_bot_benchmarking --num_dummies 20 --num_games 3 --frames_per_game 50000
+
+Training DQN bot:
+python main.py --mode train_double_dqn --dummy_lvl 1 --num_episodes 1000 --batch_size 32 --update_target_every 100
 
 TODO:
 

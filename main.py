@@ -10,6 +10,9 @@ import pickle
 from collections import defaultdict
 import config
 
+from agar_env import AgarEnv
+from training.ddqn import DoubleDQNAgent
+
 game_config = config.GameConfig()
 matplotlib.use('Agg')  # Non-interactive backend
 
@@ -157,8 +160,10 @@ def basic_bot_benchmarking(n_dummies, frames_per_game, num_games):
                 if len(sizes) < frames_per_game:
                     sizes.append(None)  # Mark as incomplete
                 player_size_evolution[player_name].append(sizes)
+
+        dead_player_idxs = [i for i in range(n_dummies) if player_death_flags[f"dum{i}"]]
         
-        print(f"Dead players for game {game_num}: {len([i for i in range(n_dummies) if player_death_flags[f"dum{i}"]])}")
+        print(f"Dead players for game {game_num}: {len(dead_player_idxs)}")
     
     # Save the dictionary to a pickle file
     filename = f'benchmarking/dummies_benchmrk_{n_dummies}_frames{frames_per_game}_games{num_games}.pkl'
@@ -168,40 +173,53 @@ def basic_bot_benchmarking(n_dummies, frames_per_game, num_games):
     print(f"Player size evolution data saved to {filename}")
 
     
-def train_rl(num_episodes=1000, visualize=False):
-    # rl_bot = RLBot()
-    # env = AgarEnvironment(game_config, [rl_bot], visualize=visualize)
+def train_double_dqn(dummy_lvl, num_episodes=1000, batch_size=32, update_target_every=100):
+    env = AgarEnv(dummy_lvl)
+    state_size = env.observation_space.shape[0]
+    action_size = env.action_space.n
+    agent = DoubleDQNAgent(state_size, action_size)
 
-    # for episode in range(num_episodes):
-    #     state = env.reset()
-    #     done = False
-    #     total_reward = 0
+    for episode in range(num_episodes):
+        state = env.reset()
+        total_reward = 0
+        done = False
 
-    #     while not done:
-    #         action = rl_bot.get_action(state)
-    #         next_state, reward, done, _ = env.step(action)
-    #         rl_bot.learn(state, action, reward, next_state, done)
-    #         state = next_state
-    #         total_reward += reward
+        while not done:
+            action = agent.act(state)
+            next_state, reward, done, _ = env.step(action)
+            agent.remember(state, action, reward, next_state, done)
+            state = next_state
+            total_reward += reward
 
-    #         if visualize:
-    #             env.render()
+            if len(agent.memory) > batch_size:
+                agent.replay(batch_size)
 
-    #     print(f"Episode {episode + 1}/{num_episodes}, Total Reward: {total_reward}")
+        if episode % update_target_every == 0:
+            agent.update_target_model()
 
-    # env.close()
-    pass
+        print(f"Episode: {episode+1}/{num_episodes}, Total Reward: {total_reward}, Epsilon: {agent.epsilon:.2f}")
+
+        if (episode + 1) % 100 == 0:
+            agent.save(f"double_dqn_model_episode_{episode+1}.pth")
+
+    env.close()
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Agar.io RL Environment")
-    parser.add_argument("--mode", choices=["human_with_dummies", "basic_bot_test", "basic_bot_benchmarking", "train"], default="human_with_dummies", help="Mode of operation")
+    parser.add_argument("--mode", default="human_with_dummies")
     parser.add_argument("--num_dummies")
-    parser.add_argument("--visualize", action="store_true", help="Enable visualization for bot_test and train modes")
+    parser.add_argument("--visualize", action="store_true")
     parser.add_argument("--high")
     parser.add_argument("--low")
     parser.add_argument("--frames_per_game")
     parser.add_argument("--num_games")
     parser.add_argument("--spatialgrid_size")
+
+    # Training
+    parser.add_argument("--num_episodes", type=int, default=1000)
+    parser.add_argument("--batch_size", type=int, default=32)
+    parser.add_argument("--update_target_every", type=int, default=100, help="Update target network every n episodes")
+    parser.add_argument("--dummy_lvl", type=int)
     
     args = parser.parse_args()
 
@@ -215,5 +233,11 @@ if __name__ == "__main__":
         basic_bot_benchmarking(int(args.num_dummies), frames_per_game=int(args.frames_per_game),
                        num_games=int(args.num_games))
 
-    # elif args.mode == "train":
-    #     train_rl(visualize=args.visualize)
+    elif args.mode == "train_double_dqn":
+        train_double_dqn(dummy_lvl=args.dummy_lvl,
+                         num_episodes=args.num_episodes, 
+                         batch_size=args.batch_size, 
+                         update_target_every=args.update_target_every)
+
+    else:
+        raise Exception("Mode not supported")

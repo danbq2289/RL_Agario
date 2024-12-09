@@ -8,12 +8,13 @@ import config
 game_config = config.GameConfig()
 
 class AgarEnv(gym.Env):
-    def __init__(self, num_dummy_bots=12):
+    def __init__(self, num_dummy_bots=12, dummy_lvl=1):
         super(AgarEnv, self).__init__()
         self.num_dummy_bots = num_dummy_bots
         self.game = None
         self.player_idx = 0  # Assuming the main player is always at index 0
         self.dummy_bots = None
+        self.dummy_lvl = dummy_lvl
 
         # Define action and observation space
         self.action_space = spaces.Discrete(33)  # 16 directions, 16 directions plus split, one for "center"
@@ -42,7 +43,7 @@ class AgarEnv(gym.Env):
     def reset(self):
         player_names = ["MainPlayer"] + [f"DummyBot{i}" for i in range(self.num_dummy_bots)]
         self.game = Game(player_names, non_dummy_players=1)
-        self.dummy_bots = [DummyBot(name) for name in player_names[1:]]
+        self.dummy_bots = [DummyBot(name, self.dummy_lvl) for name in player_names[1:]]
         return self.game.get_RL_state(self.player_idx)
 
     def _action_to_game_format(self, action):

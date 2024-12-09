@@ -19,27 +19,19 @@ done so far:
 
 TODO:
 - Benchmarking preparation:
+   - Add parameters.
+   - Import repo in Satori. Run all experiments to determine optimal spatial cell size
 
-   - With or without visualization, find how many frames you can run per second/minute. Try:
-         a. Using game state normally (done)
-         b. Modifying the basic bots to use game only
+   - While this runs, locally:
+      - basic_bot_test (with and without visualization), and plot the total size.
 
-         f. Compare
+      - Plot the size evolution. Try:
+         a. All frames
+         b. Skipped frames
+         c. First episode
+         d. Max size in each episode
 
-         c. Further modifications
-            - TODO: Optimize basic bot code (index of dummy, for example)
-      
-   - basic_bot_test (with and without visualization), and plot the total size.
-
-   
-
-   - Plot the size evolution. Try:
-      a. All frames
-      b. Skipped frames
-      c. First episode
-      d. Max size in each episode
-
-   - Then, formalize this in an object augmented to the game that appends the total size.
+      - Then, formalize this in an object augmented to the game that appends the total size.
 
 - Multi player preparation: 
    
@@ -49,6 +41,11 @@ TODO:
 
 - Build environment:
    - Design it in paper. 
+      - Define rewards
+      - Define actions: include 0 for no op, and make sure it makes sense if it's the center
+      - Think about how to make two bots compete with each other:
+         a. The environment passes as first 16 arguments the locations/masses of the cells. (12 by default)
+         b. So for different players, just reformat the space. Include the self player first.
    - Tradeoff: fixed players or not?
       a. Actions: 0-15 for directions, 16-31 for splitting, 32 for no op.
       b. Rewards: Let it be the size difference between frames.
@@ -82,15 +79,7 @@ TODO:
    - Cite the guy that implemented FUN
    - Rewrite the README
    - Clean the code: replace get_state with get_state_for_drawing
-
-
-
-
-- Define rewards
-- Define actions: include 0 for no op, and make sure it makes sense if it's the center
-- Think about how to make two bots compete with each other:
-   a. The environment passes as first 16 arguments the locations/masses of the cells. (12 by default)
-   b. So for different players, just reformat the space. Include the self player first.
+   - Add game parameters where possible
 
 
 optional:

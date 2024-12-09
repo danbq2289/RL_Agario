@@ -177,8 +177,18 @@ class Player:
         for cell in self.cells:
             cell.move(px, py)
 
-    def eat(self, other, virus=False):
+    def eat(self, other, virus=False, cell=None):
         """Attempt to eat another object (food or player cell). If virus, explode if eaten."""
+        # Sometimes we have already a candidate cell.
+        if cell is not None:
+            if cell.can_eat(other) and cell.intersects_with(other):
+                cell.grow(other.mass)
+                self.regulate_cell_masses()
+                if virus:
+                    self.explode_cell(cell)
+                return True
+            return False
+        
         for cell in self.cells:
             if cell.can_eat(other) and cell.intersects_with(other):
                 cell.grow(other.mass)

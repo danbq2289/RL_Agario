@@ -29,6 +29,30 @@ def generate_points(rect_width, rect_height, min_distance, num_points):
 
     return points
 
+class SpatialGrid:
+    def __init__(self, cell_size):
+        self.cell_size = cell_size
+        self.grid = {}
+
+    def add_object(self, obj):
+        cell_x = int(obj.x // self.cell_size)
+        cell_y = int(obj.y // self.cell_size)
+        key = (cell_x, cell_y)
+        if key not in self.grid:
+            self.grid[key] = []
+        self.grid[key].append(obj)
+
+    def get_nearby_objects(self, obj, range_cells=1):
+        cell_x = int(obj.x // self.cell_size)
+        cell_y = int(obj.y // self.cell_size)
+        nearby = []
+        for dx in range(-range_cells, range_cells + 1):
+            for dy in range(-range_cells, range_cells + 1):
+                key = (cell_x + dx, cell_y + dy)
+                if key in self.grid:
+                    nearby.extend(self.grid[key])
+        return nearby
+    
 class Game:
     def __init__(self, player_names, non_dummy_players):
         self.frame_counter = 0
@@ -52,6 +76,18 @@ class Game:
         self.food = self.generate_food(game_config.INITIAL_FOOD_COUNT)
         self.viruses = self.generate_viruses(game_config.INITIAL_VIRUS_COUNT)
         self.ejected_food = []
+
+    def update_spatial_grid(self):
+        self.spatial_grid = SpatialGrid(game_config.SPATIAL_GRID_CELL)
+        for player in self.players:
+            for cell in player.cells:
+                self.spatial_grid.add_object(cell)
+        for food in self.food:
+            self.spatial_grid.add_object(food)
+        for virus in self.viruses:
+            self.spatial_grid.add_object(virus)
+        for ejected in self.ejected_food:
+            self.spatial_grid.add_object(ejected)
 
     def ejected_food_update(self):
         for ejected in self.ejected_food:
@@ -168,31 +204,40 @@ class Game:
             self.viruses.extend(self.generate_viruses(new_viruses_count))
 
     def handle_collisions(self):
-        for virus in self.viruses:
-            self.ejected_food = [e for e in self.ejected_food if not virus.eat(e)]
-
+        self.update_spatial_grid()
         reset_players = set()
+
+        for virus in self.viruses:
+            nearby_objects = self.spatial_grid.get_nearby_objects(virus, range_cells=game_config.VIRUS_CELL_RANGE)
+            self.ejected_food = [e for e in self.ejected_food if not (e in nearby_objects and virus.eat(e))]
+        
         for i, player in enumerate(self.players):
             if player.name in reset_players:
                 continue
-            # Check for food collisions
-            self.food = [f for f in self.food if not player.eat(f)]
 
-            # Ejected food can be eaten by players
-            self.ejected_food = [e for e in self.ejected_food if not player.eat(e)]
-        
-            # Check for virus collisions
-            self.viruses = [v for v in self.viruses if not player.eat(v, virus=True)]
+            for cell in player.cells:
+                range_cells = max(1, int(cell.radius // game_config.SPATIAL_GRID_CELL) + 1)
+                nearby_objects = self.spatial_grid.get_nearby_objects(cell, range_cells=range_cells)
 
-            # Check for player collisions
-            for j, other_player in enumerate(self.players):
-                if i != j and other_player.name not in reset_players:
-                    for other_cell in other_player.cells[:]:  # Iterate over a copy to avoid issues with modification
-                        if player.eat(other_cell):
-                            other_player.cells.remove(other_cell)
-                            if len(other_player.cells) == 0:
-                                # Don't check that player anymore and schedule for resetting
-                                reset_players.add(other_player.name)
+
+                # Check for food collisions
+                self.food = [f for f in self.food if not (f in nearby_objects and player.eat(f, cell=cell))]
+
+                # Ejected food can be eaten by players
+                self.ejected_food = [e for e in self.ejected_food if not (e in nearby_objects and player.eat(e, cell=cell))]
+            
+                # Check for virus collisions
+                self.viruses = [v for v in self.viruses if not (v in nearby_objects and player.eat(v, virus=True, cell=cell))]
+
+                # Check for player collisions
+                for j, other_player in enumerate(self.players):
+                    if i != j and other_player.name not in reset_players:
+                        for other_cell in other_player.cells[:]:  # Iterate over a copy to avoid issues with modification
+                            if other_cell in nearby_objects and player.eat(other_cell, cell=cell):
+                                other_player.cells.remove(other_cell)
+                                if len(other_player.cells) == 0:
+                                    # Don't check that player anymore and schedule for resetting
+                                    reset_players.add(other_player.name)
 
         for player in self.players:
             if len(player.cells) == 0:

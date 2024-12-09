@@ -48,7 +48,6 @@ class GameConfig:
         self.MAX_AMOUNT_CELLS = 16
 
         # Game mechanics
-        # self.ABSORPTION_RATIO = 1.1  # Minimum size ratio for absorption
         self.SPLIT_MASS_THRESHOLD = 35
         self.SPLIT_SPEED = 30
         self.VIRUS_SPLIT_SPEED = 40
@@ -58,6 +57,11 @@ class GameConfig:
 
         self.MASS_FACTOR_EAT_ANOTHER = 1.2
         self.CLOSENESS_FACTOR = 0.25
+
+        # Optimization
+        self.SPATIAL_GRID_CELL = 50
+        self.CELL_RANGE_FROM_RADIUS = lambda r: int(r // self.SPATIAL_GRID_CELL) + 1
+        self.VIRUS_CELL_RANGE = self.CELL_RANGE_FROM_RADIUS(self.RADIUS_FROM_MASS(self.VIRUS_MAX_MASS))
 
         # RL training
         self.TOTAL_DIRECTIONS = 16

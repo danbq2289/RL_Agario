@@ -1,5 +1,8 @@
 import argparse
 import time
+import matplotlib
+import matplotlib.pyplot as plt
+matplotlib.use('Agg')  # Non-interactive backend
 import pygame
 from core.game import Game
 # from environment import AgarEnvironment
@@ -65,8 +68,13 @@ def basic_bot_test(n_dummies, visualize):
     dummy_names = [f"dum{i}" for i in range(n_dummies)]
     dummy_bots = [DummyBot(name) for name in dummy_names]
     
+    high = 4
+    low = 1
+    game_amount = 1000
+    game_config.SPATIAL_GRID_CELL = 60
+
     time_intervals = []
-    for i in range(100):
+    for _ in range(game_amount):
         game = Game(dummy_names, non_dummy_players=0)
         max_steps = 1000
 
@@ -99,7 +107,20 @@ def basic_bot_test(n_dummies, visualize):
 
         time_intervals.append(end - st)
 
-    print(time_intervals)
+        
+    plt.hist(time_intervals, bins=50, range=(low, high), color='blue', edgecolor='black')
+
+    # Add labels and title
+    plt.xlabel('Value')
+    plt.ylabel('Frequency')
+    plt.title(f"games: {game_amount} , gridsize:{game_config.SPATIAL_GRID_CELL}, mean:{sum(time_intervals)/len(time_intervals):.4f}, <{low}: {len([x for x in time_intervals if x < low])}, >{high}: {len([x for x in time_intervals if x > high])}")
+
+    # Show the plot
+    print(f"Amount of values less than {low}: {len([x for x in time_intervals if x < low])}")
+    print(f"Amount of values more than {high}: {len([x for x in time_intervals if x > high])}")
+    print(f"Grid size used:{game_config.SPATIAL_GRID_CELL}")
+    
+    plt.savefig(f'plot{game_config.SPATIAL_GRID_CELL}_{low}_{high}.png')
 
 
 def train_rl(num_episodes=1000, visualize=False):

@@ -14,13 +14,19 @@ Benchmarking bots:
 python main.py --mode basic_bot_benchmarking --num_dummies 20 --num_games 3 --frames_per_game 50000
 
 Training DQN bot:
-python main.py --mode train_double_dqn --dummy_lvl 1 --num_episodes 1000 --batch_size 32 --update_target_every 100
+python main.py --mode train_double_dqn --num_dummies 20 --dummy_lvl 1 --num_episodes 100 --batch_size 32 --update_target_every 10 --max_frames_per_episode 3600
+
+Testing DQN bot against dummies:
+python main.py --mode dqn_vs_dummies --num_dummies 20 --dummy_lvl 1 --visualize
+
 
 TODO:
 
 - Applying DQN
-   - See if you need a buffer, or how you should implement it.
-   - See how long the training will be. If too long, just reduce the epochs or something.
+   - See how long the training will be:
+   -    Add a limit to the frames (doing it until the episode done might be too long)
+
+   - Update README with all the possibilities.
 
 - Applying Feudal Networks
    - Figure out the environment replacement
@@ -78,6 +84,8 @@ optional:
    - Rewrite the README
    - Clean the code: replace get_state with get_state_for_drawing
    - Add game parameters where possible
+
+   - Parameters for the location of the checkpoint
 
 - the movement equations are done per frame, so if FPS is changed then the equations change a lot. maybe correct this. not necessary.
 - How to multitrain? Create two (or many) environments. Covering a game object. Augment the previous scores for the rewards. (This is hard. Maybe later)

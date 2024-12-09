@@ -63,7 +63,7 @@ class Game:
         points = generate_points(game_config.GAME_WIDTH, game_config.GAME_HEIGHT, 
                                  game_config.INITIAL_SEPARATION_MIN, len(player_names))
         
-        # Non dummy players
+        # Non dummy players 
         non_dummy_players_list = [Player(point[0], point[1],
             (100 + random.randint(0, 155), 100 + random.randint(0, 155), 100 + random.randint(0, 155)),
             name) for name, point in zip(player_names[:non_dummy_players], points[:non_dummy_players])]
@@ -249,6 +249,8 @@ class Game:
                     if i != j and other_player.name not in reset_players:
                         for other_cell in other_player.cells[:]:  # Iterate over a copy to avoid issues with modification
                             if other_cell in nearby_objects and player.eat(other_cell, cell=cell):
+
+                                other_player.mass_lost_this_frame += other_cell.mass
                                 other_player.cells.remove(other_cell)
                                 if len(other_player.cells) == 0:
                                     # Don't check that player anymore and schedule for resetting

@@ -167,6 +167,11 @@ class Player:
         self.cells = [Cell(x, y, color, name, mass)]
         self.split_cooldown = 0
 
+        # These parameters don't take in account the pssive mass loss.
+        self.mass_eaten_this_frame = 0
+        self.mass_lost_this_frame = 0
+        self.mass_ejected_this_frame = 0
+
     def reset(self):
         """Use this function to respawn the player"""
         self.cells = [Cell(random.randint(0, game_config.GAME_WIDTH), random.randint(0, game_config.GAME_HEIGHT), self.color, self.name, game_config.INITIAL_PLAYER_MASS)]
@@ -186,6 +191,8 @@ class Player:
                 self.regulate_cell_masses()
                 if virus:
                     self.explode_cell(cell)
+                
+                self.mass_eaten_this_frame += other.mass
                 return True
             return False
         
@@ -195,6 +202,8 @@ class Player:
                 self.regulate_cell_masses()
                 if virus:
                     self.explode_cell(cell)
+
+                self.mass_eaten_this_frame += other.mass
                 return True
         return False
     
@@ -293,6 +302,10 @@ class Player:
                             cell2.y += math.sin(angle) * overlap / 2
 
     def update(self, action):
+        self.mass_eaten_this_frame = 0
+        self.mass_lost_this_frame = 0
+        self.mass_ejected_this_frame = 0
+
         px, py, do_split, do_feed = action
 
         if do_split:
@@ -303,10 +316,14 @@ class Player:
             for cell in self.cells:
                 ejected = cell.eject_food(px, py)
                 if ejected:
+                    self.mass_ejected_this_frame += ejected.mass
                     ejected_food.append(ejected)
 
         self.split_cooldown = max(0, self.split_cooldown - 1/game_config.FPS)
         self.move(px, py)
         self.handle_self_collisions()
         return ejected_food
+    
+    def reward_after_update(self):
+        return self.mass_eaten_this_frame - self.mass_lost_this_frame - self.mass_ejected_this_frame
     

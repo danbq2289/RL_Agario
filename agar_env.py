@@ -8,13 +8,16 @@ import config
 game_config = config.GameConfig()
 
 class AgarEnv(gym.Env):
-    def __init__(self, num_dummy_bots=12, dummy_lvl=1):
+    def __init__(self, num_dummy_bots=12, dummy_lvl=1, max_frames_per_episode=3600):
         super(AgarEnv, self).__init__()
         self.num_dummy_bots = num_dummy_bots
         self.game = None
         self.player_idx = 0  # Assuming the main player is always at index 0
         self.dummy_bots = None
         self.dummy_lvl = dummy_lvl
+
+        self.max_frames_per_episode=max_frames_per_episode  # could be None
+        self.current_frame = 0
 
         # Define action and observation space
         self.action_space = spaces.Discrete(33)  # 16 directions, 16 directions plus split, one for "center"
@@ -37,6 +40,13 @@ class AgarEnv(gym.Env):
         state = self.game.get_RL_state(self.player_idx)
         reward = self._calculate_reward()
         done = self._is_episode_done(reset_players)
+
+        self.current_frame += 1
+
+        # Check if frame limit has been reached
+        if self.max_frames_per_episode is not None:
+            if self.current_frame >= self.max_frames_per_episode:
+                done = True
         
         return state, reward, done, {}
 
@@ -44,6 +54,7 @@ class AgarEnv(gym.Env):
         player_names = ["MainPlayer"] + [f"DummyBot{i}" for i in range(self.num_dummy_bots)]
         self.game = Game(player_names, non_dummy_players=1)
         self.dummy_bots = [DummyBot(name, self.dummy_lvl) for name in player_names[1:]]
+        self.current_frame = 0
         return self.game.get_RL_state(self.player_idx)
 
     def _action_to_game_format(self, action):
@@ -60,7 +71,8 @@ class AgarEnv(gym.Env):
             return (px, py, do_split, False)
 
     def _calculate_reward(self):
-        return sum(cell.mass for cell in self.game.players[self.player_idx].cells)
-
+        # return sum(cell.mass for cell in self.game.players[self.player_idx].cells)
+        return self.game.players[self.player_idx].reward_after_update()
+    
     def _is_episode_done(self, reset_players):
         return self.game.players[self.player_idx].name in reset_players

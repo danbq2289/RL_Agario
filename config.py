@@ -67,20 +67,16 @@ class GameConfig:
         self.TOTAL_DIRECTIONS = 16
         self.DISCRETE_FACTOR_DISTANCE = 2.5
 
+        self.OBSERVATION_SIZE = (16 + 30 + 100 + 10) * 3
+
         self.MAX_STEPS = 10000  # Maximum steps per episode
         self.REWARD_FOOD = 1
         self.REWARD_PLAYER = 10
         self.REWARD_DEATH = -50
 
-        # Observation space
-        self.VIEW_DISTANCE = 200  # Pixels
-        self.OBSERVATION_RESOLUTION = 84  # Pixels (square observation)
 
     def get_action_space(self):
         return self.ACTION_SPACE
-
-    def get_observation_space(self):
-        return (self.OBSERVATION_RESOLUTION, self.OBSERVATION_RESOLUTION, 3)  # RGB channels
 
     def get_reward_range(self):
         min_reward = self.REWARD_DEATH

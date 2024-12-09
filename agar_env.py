@@ -2,72 +2,64 @@ import gym
 from gym import spaces
 import numpy as np
 from core.game import Game
+from bots.basic_bots import DummyBot
 import config
+
 game_config = config.GameConfig()
 
-OBSERVATION_SIZE = 100  # set this in config
 class AgarEnv(gym.Env):
-    def __init__(self, game, player_idx):
+    def __init__(self, num_dummy_bots=12):
         super(AgarEnv, self).__init__()
-        self.game = game
-        self.player_idx = player_idx
-        
+        self.num_dummy_bots = num_dummy_bots
+        self.game = None
+        self.player_idx = 0  # Assuming the main player is always at index 0
+        self.dummy_bots = None
+
         # Define action and observation space
-        self.action_space = spaces.Discrete(33)  # 16 directions, 16 directions plus split, one where you "put the mouse in the center" (reunite cells)
-        
-        # Observation space will be a flattened array of normalized values
-        self.observation_space = spaces.Box(low=0, high=1, shape=(OBSERVATION_SIZE,), dtype=np.float32)
+        self.action_space = spaces.Discrete(33)  # 16 directions, 16 directions plus split, one for "center"
+        self.observation_space = spaces.Box(low=0, high=1, shape=(game_config.OBSERVATION_SIZE,), dtype=np.float32)
 
     def step(self, action):
         # Convert action to game format
-        game_action = self._action_to_game_format(action)
+        main_player_action = self._action_to_game_format(action)
+        
+        # Get actions for dummy bots
+        dummy_actions = [bot.get_action(self.game) for bot in self.dummy_bots]
+        
+        # Combine main player action with dummy bot actions
+        all_actions = [main_player_action] + dummy_actions
         
         # Update game state
-        self.game.update([game_action])
+        reset_players = self.game.update(all_actions)
         
         # Get new state, reward, and done flag
-        state = self._get_observation()
+        state = self.game.get_RL_state(self.player_idx)
         reward = self._calculate_reward()
-        done = self._is_episode_done()
+        done = self._is_episode_done(reset_players)
         
         return state, reward, done, {}
 
     def reset(self):
-        self.game = Game(["DQN_Agent"], self.game_config, mode="human_with_dummies")
-        return self._get_observation()
+        player_names = ["MainPlayer"] + [f"DummyBot{i}" for i in range(self.num_dummy_bots)]
+        self.game = Game(player_names, non_dummy_players=1)
+        self.dummy_bots = [DummyBot(name) for name in player_names[1:]]
+        return self.game.get_RL_state(self.player_idx)
 
     def _action_to_game_format(self, action):
-        # Convert discrete action to game action format
-        directions = [(0, -1), (1, -1), (1, 0), (1, 1), (0, 1), (-1, 1), (-1, 0), (-1, -1)]
-        if action < 8:
-            dx, dy = directions[action]
-            player = self.game.players[0]
-            px = player.cells[0].x + dx * 100
-            py = player.cells[0].y + dy * 100
-            return (px, py, False, False)
+        # Convert discrete action to game format (px, py, do_split, do_feed)
+        biggest_cell = max(self.game.players[self.player_idx].cells, key=lambda c: c.radius)
+        if action == 32:  # "Center" action
+            return (biggest_cell.x, biggest_cell.y, False, False)
         else:
-            return (player.cells[0].x, player.cells[0].y, True, False)
-
-    def _get_observation(self):
-        # Convert game state to normalized observation
-        player = self.game.players[0]
-        state = self.game.get_state()
-        
-        obs = []
-        # Normalize player position
-        obs.extend([player.cells[0].x / self.game_config.GAME_WIDTH, 
-                    player.cells[0].y / self.game_config.GAME_HEIGHT])
-        
-        # Add normalized information about nearby food, viruses, and other players
-        # This part needs to be implemented based on your specific requirements
-        
-        return np.array(obs, dtype=np.float32)
+            angle = 2 * np.pi * (action % 16) / 16
+            offset = game_config.DISCRETE_FACTOR_DISTANCE * biggest_cell.radius
+            px = biggest_cell.x + offset * np.cos(angle)
+            py = biggest_cell.y + offset * np.sin(angle)
+            do_split = action >= 16
+            return (px, py, do_split, False)
 
     def _calculate_reward(self):
-        # Implement reward calculation
-        # For example, reward could be based on mass gained or lost
-        return 0
+        return sum(cell.mass for cell in self.game.players[self.player_idx].cells)
 
-    def _is_episode_done(self):
-        # Implement episode termination condition
-        return False
+    def _is_episode_done(self, reset_players):
+        return self.game.players[self.player_idx].name in reset_players

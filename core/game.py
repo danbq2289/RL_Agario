@@ -129,48 +129,62 @@ class Game:
     def get_RL_state(self, player_index):
         obs = []
         player = self.players[player_index]
+        total_size = sum([cell.radius for cell in player.cells])
         
         # Calculate visible area
-        view_width = game_config.WIDTH / player.cells[0].radius
-        view_height = game_config.HEIGHT / player.cells[0].radius
+        view_width = game_config.WIDTH / math.pow(min(64 / total_size, 1), 0.4)
+        view_height = game_config.HEIGHT / math.pow(min(64 / total_size, 1), 0.4)
         view_left = player.cells[0].x - view_width / 2
         view_top = player.cells[0].y - view_height / 2
         
-        # Cells (max 20)
+        # Player's own cells (max 16)
+        for i in range(16):
+            if i < len(player.cells):
+                cell = player.cells[i]
+                norm_x = (cell.x - view_left) / view_width
+                norm_y = (cell.y - view_top) / view_height
+                obs.extend([norm_x, norm_y,
+                            cell.mass / game_config.MAX_PLAYER_MASS])
+            else:
+                obs.extend([norm_x, norm_y, 0])  # Padding
+        
+        # Other visible cells (max 30)
         visible_cells = []
-        for p in self.players:
-            for cell in p.cells:
-                if (view_left <= cell.x <= view_left + view_width and
-                    view_top <= cell.y <= view_top + view_height):
-                    visible_cells.append((cell.x, cell.y, cell.mass))
+        for i, p in enumerate(self.players):
+            if i != player_index:
+                for cell in p.cells:
+                    if (view_left <= cell.x <= view_left + view_width and
+                        view_top <= cell.y <= view_top + view_height):
+                        visible_cells.append((cell.x, cell.y, cell.mass))
         
         visible_cells.sort(key=lambda c: c[2], reverse=True)  # Sort by mass
-        for i in range(20):
+        for i in range(30):
             if i < len(visible_cells):
                 x, y, mass = visible_cells[i]
-                obs.extend([(x - view_left) / view_width, (y - view_top) / view_height, mass / game_config.MAX_PLAYER_MASS])
+                norm_x, norm_y = (x - view_left) / view_width, (y - view_top) / view_height
+                obs.extend([norm_x, norm_y, mass / game_config.MAX_PLAYER_MASS])
             else:
-                obs.extend([0, 0, 0])  # Padding
+                obs.extend([norm_x, norm_y, 0])  # Padding
         
         # Food (max 100)
-        visible_food = [f for f in self.food if (view_left <= f.x <= view_left + view_width and
+        visible_food = [f for f in self.food + self.ejected_food if (view_left <= f.x <= view_left + view_width and
                                                 view_top <= f.y <= view_top + view_height)]
         for i in range(100):
             if i < len(visible_food):
-                obs.extend([(visible_food[i].x - view_left) / view_width, 
-                            (visible_food[i].y - view_top) / view_height])
+                norm_x, norm_y = (visible_food[i].x - view_left) / view_width, (visible_food[i].y - view_top) / view_height
+                obs.extend([norm_x, norm_y, visible_food[i].mass])
             else:
-                obs.extend([0, 0])  # Padding
+                obs.extend([norm_x, norm_y, 0])  # Padding
         
         # Viruses (max 10)
         visible_viruses = [v for v in self.viruses if (view_left <= v.x <= view_left + view_width and
                                                     view_top <= v.y <= view_top + view_height)]
         for i in range(10):
             if i < len(visible_viruses):
-                obs.extend([(visible_viruses[i].x - view_left) / view_width, 
-                            (visible_viruses[i].y - view_top) / view_height])
+                norm_x, norm_y = (visible_viruses[i].x - view_left) / view_width, (visible_viruses[i].y - view_top) / view_height
+                obs.extend([norm_x, norm_y, visible_viruses[i].mass])
             else:
-                obs.extend([0, 0])  # Padding
+                obs.extend([norm_x, norm_y, 0])  # Padding
         
         return obs
 

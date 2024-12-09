@@ -292,36 +292,9 @@ class Player:
                             cell2.x += math.cos(angle) * overlap / 2
                             cell2.y += math.sin(angle) * overlap / 2
 
-    def update(self, action, discrete_action=None):
+    def update(self, action):
         px, py, do_split, do_feed = action
 
-        if discrete_action is not None:
-            assert 0 <= discrete_action <= 2*game_config.TOTAL_DIRECTIONS
-
-
-            # Replaces the action.
-            biggest_cell = max(self.cells, key=lambda c: c.radius)
-            biggest_cell_radius = biggest_cell.radius
-            x_center, y_center =biggest_cell.x, biggest_cell.y
-
-            if discrete_action == 2*game_config.TOTAL_DIRECTIONS:
-                px, py = x_center, y_center
-                do_split = False
-                do_feed = False
-            
-            else:
-                # Discrete action could be 0...15 (no splitting), 16....31 (splitting)
-                total_directions = game_config.TOTAL_DIRECTIONS
-                angle = 2*math.pi*(discrete_action % total_directions) / total_directions
-
-                # Calculate px and py based on the angle
-                offset = game_config.DISCRETE_FACTOR_DISTANCE * biggest_cell_radius
-                px = x_center + offset * math.cos(angle)
-                py = y_center + offset * math.sin(angle)
-
-                do_split = discrete_action >= total_directions
-                do_feed = False
-        
         if do_split:
             self.try_split(px, py)
 

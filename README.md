@@ -2,7 +2,7 @@ Installation instructions:
 
 1. conda create -n HRL python=3.12
 2. conda activate HRL
-3. conda install pygame
+3. conda install pytorch pygame
 
 Play with dummy bots:
 python main.py --mode human_with_dummies --num_dummies 5
@@ -13,7 +13,23 @@ python main.py --mode basic_bot_test --num_dummies 20 --high 4 --low 1 --num_gam
 Benchmarking bots:
 python main.py --mode basic_bot_benchmarking --num_dummies 20 --num_games 3 --frames_per_game 50000
 
+TODO:
 
+- Applying DQN
+   - See if you need a buffer, or how you should implement it.
+   - See how long the training will be. If too long, just reduce the epochs or something.
+
+- Applying Feudal Networks
+   - Figure out the environment replacement
+   - Fix any bugs
+   - Figure out benchmarking
+
+- Write the report 
+   - Do this at the same time as the experiments
+   - Record videos of the bots playing against each other
+-----------------------------------------
+
+Done already:
 - added player's capability to get discrete actions
 - deleted food ejecting (or just ignored it, the bots can't food eject for now)
 - Change game to not receive mode. Doesn't matter. (game, main) Now it receives how many non-dummy players.
@@ -26,7 +42,6 @@ python main.py --mode basic_bot_benchmarking --num_dummies 20 --num_games 3 --fr
 - Add parameters.
 - Import repo in Satori. Run all experiments to determine optimal spatial cell size (went terribly, satori is so slow)
 
-TODO:
 - Multi player preparation: 
    
    - Add a mode to return information respect to a player. (game get observation, player index i)
@@ -47,27 +62,13 @@ TODO:
          - Cells (with masses) inside the frame, max 20-30. Ask what to do if not max. Set them inside the circle?
          - Food inside the frame as well. 
          - Viruses inside the frame as well.
-   
 
 - Benchmarking
    - Logging each player's mass through time
    - Log each player's average size, max size. (Check how the players are indexed in Game)
 
-- Applying DQN
-   - See if you can train multiple bots at the same time. That would be awesome.
-   - See if you need a buffer, or how you should implement it.
-   - See how long the training will be. If too long, just reduce the epochs or something.
-
-
-- Applying Feudal Networks
-   - Figure out the environment replacement
-   - Fix any bugs
-   - Figure out benchmarking
-
-
-- Write the report 
-   - Do this at the same time as the experiments
-   - Record videos of the bots playing against each other
+---------------------------------
+optional:
 
 - Prepare the repo
    - Cite the guy that implemented FUN
@@ -75,7 +76,5 @@ TODO:
    - Clean the code: replace get_state with get_state_for_drawing
    - Add game parameters where possible
 
-
-optional:
 - the movement equations are done per frame, so if FPS is changed then the equations change a lot. maybe correct this. not necessary.
 - How to multitrain? Create two (or many) environments. Covering a game object. Augment the previous scores for the rewards. (This is hard. Maybe later)

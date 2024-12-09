@@ -59,7 +59,7 @@ class GameConfig:
         self.CLOSENESS_FACTOR = 0.25
 
         # Optimization
-        self.SPATIAL_GRID_CELL = 50
+        self.SPATIAL_GRID_CELL = 70
         self.CELL_RANGE_FROM_RADIUS = lambda r: int(r // self.SPATIAL_GRID_CELL) + 1
         self.VIRUS_CELL_RANGE = self.CELL_RANGE_FROM_RADIUS(self.RADIUS_FROM_MASS(self.VIRUS_MAX_MASS))
 

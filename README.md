@@ -2,17 +2,18 @@ Installation instructions:
 
 1. conda create -n HRL python=3.12
 2. conda activate HRL
-3. pip install pygame
+3. conda install pygame
 
 Play with dummy bots:
 python main.py --mode human_with_dummies --num_dummies 5
 
 Running simulations:
-python main.py --mode basic_bot_test --num_dummies 12 --high 4 --low 1 --num_games 400 --frames_per_game 1000 --spatialgrid_size 50
+python main.py --mode basic_bot_test --num_dummies 20 --high 4 --low 1 --num_games 400 --frames_per_game 1000 --spatialgrid_size 70
+
+Benchmarking bots:
+python main.py --mode basic_bot_benchmarking --num_dummies 20 --num_games 3 --frames_per_game 50000
 
 
-
-done so far:
 - added player's capability to get discrete actions
 - deleted food ejecting (or just ignored it, the bots can't food eject for now)
 - Change game to not receive mode. Doesn't matter. (game, main) Now it receives how many non-dummy players.
@@ -22,22 +23,10 @@ done so far:
 - Think about how you will test this with many controllers (simple enough. initialize the game, the networks, 
      take the function for every player, plug in, get actions, put actions)
 
+- Add parameters.
+- Import repo in Satori. Run all experiments to determine optimal spatial cell size (went terribly, satori is so slow)
+
 TODO:
-- Benchmarking preparation:
-   - Add parameters.
-   - Import repo in Satori. Run all experiments to determine optimal spatial cell size
-
-   - While this runs, locally:
-      - basic_bot_test (with and without visualization), and plot the total size.
-
-      - Plot the size evolution. Try:
-         a. All frames
-         b. Skipped frames
-         c. First episode
-         d. Max size in each episode
-
-      - Then, formalize this in an object augmented to the game that appends the total size.
-
 - Multi player preparation: 
    
    - Add a mode to return information respect to a player. (game get observation, player index i)

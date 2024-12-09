@@ -4,8 +4,13 @@ Installation instructions:
 2. conda activate HRL
 3. pip install pygame
 
-so far there's the option to play with dummy bots:
+Play with dummy bots:
 python main.py --mode human_with_dummies --num_dummies 5
+
+Running simulations:
+python main.py --mode basic_bot_test --num_dummies 12 --high 4 --low 1 --num_games 400 --frames_per_game 1000 --spatialgrid_size 50
+
+
 
 done so far:
 - added player's capability to get discrete actions

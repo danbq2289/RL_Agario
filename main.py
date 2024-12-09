@@ -14,7 +14,7 @@ game_config = config.GameConfig()
 
 def human_play_with_dummies(n_dummies):
     if n_dummies > game_config.MAX_PLAYERS:
-        raise Exception("might lag. bypass if you want (config.py), but you have been warned")
+        raise Exception("might lag. bypass if you want (config.py line 21), but you have been warned")
     renderer = PygameRenderer(game_config)
     dummy_names = [f"dum{i}" for i in range(1, n_dummies+1)]
     
@@ -63,20 +63,17 @@ def human_play_with_dummies(n_dummies):
         clock.tick(game_config.FPS)
     renderer.close()
 
-def basic_bot_test(n_dummies, visualize):
+def basic_bot_test(n_dummies, visualize, high, low, frames_per_game, num_games, spatialgrid_size):
     # For benchmarking the bots.
     dummy_names = [f"dum{i}" for i in range(n_dummies)]
     dummy_bots = [DummyBot(name) for name in dummy_names]
-    
-    high = 4
-    low = 1
-    game_amount = 1000
-    game_config.SPATIAL_GRID_CELL = 60
+
+    game_config.SPATIAL_GRID_CELL = spatialgrid_size
 
     time_intervals = []
-    for _ in range(game_amount):
+    for _ in range(num_games):
         game = Game(dummy_names, non_dummy_players=0)
-        max_steps = 1000
+        max_steps = frames_per_game
 
         if visualize:
             renderer = PygameRenderer(game_config)
@@ -113,7 +110,7 @@ def basic_bot_test(n_dummies, visualize):
     # Add labels and title
     plt.xlabel('Value')
     plt.ylabel('Frequency')
-    plt.title(f"games: {game_amount} , gridsize:{game_config.SPATIAL_GRID_CELL}, mean:{sum(time_intervals)/len(time_intervals):.4f}, <{low}: {len([x for x in time_intervals if x < low])}, >{high}: {len([x for x in time_intervals if x > high])}")
+    plt.title(f"games: {num_games} , gridsize:{game_config.SPATIAL_GRID_CELL}, mean:{sum(time_intervals)/len(time_intervals):.4f}, <{low}: {len([x for x in time_intervals if x < low])}, >{high}: {len([x for x in time_intervals if x > high])}")
 
     # Show the plot
     print(f"Amount of values less than {low}: {len([x for x in time_intervals if x < low])}")
@@ -152,11 +149,19 @@ if __name__ == "__main__":
     parser.add_argument("--mode", choices=["human_with_dummies", "basic_bot_test", "train"], default="human_with_dummies", help="Mode of operation")
     parser.add_argument("--num_dummies")
     parser.add_argument("--visualize", action="store_true", help="Enable visualization for bot_test and train modes")
+    parser.add_argument("--high")
+    parser.add_argument("--low")
+    parser.add_argument("--frames_per_game")
+    parser.add_argument("--num_games")
+    parser.add_argument("--spatialgrid_size")
+    
     args = parser.parse_args()
 
     if args.mode == "human_with_dummies":
         human_play_with_dummies(int(args.num_dummies))
     elif args.mode == "basic_bot_test":
-        basic_bot_test(int(args.num_dummies), visualize=args.visualize)
+        basic_bot_test(int(args.num_dummies), visualize=args.visualize,
+                       high=int(args.high), low=int(args.low), frames_per_game=int(args.frames_per_game),
+                       num_games=int(args.num_games), spatialgrid_size=int(args.spatialgrid_size))
     # elif args.mode == "train":
     #     train_rl(visualize=args.visualize)

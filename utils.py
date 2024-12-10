@@ -8,7 +8,7 @@ import torch
 import numpy as np
 
 from torch.distributions import Categorical
-from agar_env import AgarEnv
+
 
 class ReturnWrapper(gym.Wrapper):
     #######################################################################
@@ -54,24 +54,18 @@ def atari_wrapper(env):
 
 
 def make_envs(env_name, num_envs, seed=0):
-    if env_name == 'Agar':
-        env_fns = [lambda: AgarEnv() for _ in range(num_envs)]
-        envs = gym.vector.AsyncVectorEnv(env_fns)
-        return envs
+    env_ = gym.make(env_name)
+    is_atari = hasattr(gym.envs, 'atari') and isinstance(
+            env_.unwrapped, gym.envs.atari.atari_env.AtariEnv)
+
+    if is_atari:
+        wrapper_fn = atari_wrapper
     else:
-        # Existing code for other environments
-        env_ = gym.make(env_name)
-        is_atari = hasattr(gym.envs, 'atari') and isinstance(
-                env_.unwrapped, gym.envs.atari.atari_env.AtariEnv)
+        wrapper_fn = basic_wrapper
 
-        if is_atari:
-            wrapper_fn = atari_wrapper
-        else:
-            wrapper_fn = basic_wrapper
-
-        envs = gym.vector.make(env_name, num_envs, wrappers=wrapper_fn)
-        envs.seed(seed)
-        return envs
+    envs = gym.vector.make(env_name, num_envs, wrappers=wrapper_fn)
+    envs.seed(seed)
+    return envs
 
 
 def take_action(a):

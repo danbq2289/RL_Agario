@@ -9,7 +9,7 @@ from bots.basic_bots import DummyBot
 import pickle
 from collections import defaultdict
 import config
-
+import numpy as np
 from agar_env import AgarEnv
 from training.ddqn import DoubleDQNAgent
 
@@ -218,11 +218,14 @@ def train_double_dqn(num_dummies, dummy_lvl, num_episodes=1000, batch_size=32, u
     # Partial function for multiprocessing
     train_func = partial(train_episode, agent, num_dummies, dummy_lvl, max_frames_per_episode)
 
+    total_rewards = []
     for i in range(0, num_episodes, num_processes):
         episodes_to_run = min(num_processes, num_episodes - i)
         results = pool.map(train_func, range(i, i + episodes_to_run))
 
         for episode, total_reward, frames, experiences in results:
+            total_rewards.append(total_reward)
+
             for exp in experiences:
                 agent.remember(*exp)
 
@@ -236,8 +239,15 @@ def train_double_dqn(num_dummies, dummy_lvl, num_episodes=1000, batch_size=32, u
 
             print(f"Episode: {episode+1}/{num_episodes}, Frames: {frames}, Total Reward: {total_reward}, Epsilon: {agent.epsilon:.2f}")
 
-        if (i + episodes_to_run) % 200 == 0:
+        if (i + episodes_to_run) % 20 == 0:
             agent.save(f"checkpoints/ddqn_{i+episodes_to_run}eps_lvl{dummy_lvl}.pth")
+            # Save total rewards as pickle file
+            with open(f"rewards/ddqn_rewards_{i+episodes_to_run}eps_lvl{dummy_lvl}.pkl", "wb") as f:
+                pickle.dump(total_rewards, f)
+
+    # Save final total rewards
+    with open(f"rewards/ddqn_rewards_final_{num_episodes}eps_lvl{dummy_lvl}.pkl", "wb") as f:
+        pickle.dump(total_rewards, f)
 
     pool.close()
     pool.join()

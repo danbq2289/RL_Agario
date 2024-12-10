@@ -1,7 +1,7 @@
 import argparse
 import torch
 
-from utils import make_envs, take_action, init_obj
+from utils import take_action
 from feudalnet import FeudalNetwork, feudal_loss
 from storage import Storage
 # from logger import Logger
@@ -9,12 +9,13 @@ import config
 from agar_env import AgarEnv
 game_config = config.GameConfig()
 import numpy as np
+import pickle
 
 parser = argparse.ArgumentParser(description='Feudal Nets')
 # GENERIC RL/MODEL PARAMETERS
 parser.add_argument('--lr', type=float, default=0.0005,
                     help='learning rate')
-parser.add_argument('--env-name', type=str, default='BreakoutNoFrameskip-v0',
+parser.add_argument('--env-name', type=str, default='Agario',
                     help='gym environment name')
 parser.add_argument('--num-workers', type=int, default=16,
                     help='number of parallel environments to run')
@@ -74,7 +75,8 @@ def experiment(args):
         torch.backends.cudnn.benchmark = False
 
     # envs = make_envs('Agar', args.num_workers)
-    envs = [AgarEnv() for _ in range(args.num_workers)]
+    envs = [AgarEnv(num_dummy_bots=100, dummy_lvl=0, max_frames_per_episode=None) 
+            for _ in range(args.num_workers)]
     feudalnet = FeudalNetwork(
         num_workers=args.num_workers,
         input_dim=(game_config.OBSERVATION_SIZE,),
@@ -93,6 +95,8 @@ def experiment(args):
 
     x = np.array([env.reset() for env in envs])
     step = 0
+
+    total_rewards = []
     while step < args.max_steps:
 
         # Detaching LSTMs and goals
@@ -102,7 +106,7 @@ def experiment(args):
                           keys=['r', 'r_i', 'v_w', 'v_m', 'logp', 'entropy',
                                 's_goal_cos', 'mask', 'ret_w', 'ret_m',
                                 'adv_m', 'adv_w'])
-
+        episode_reward = np.zeros(16)
         for _ in range(args.num_steps):
             action_dist, goals, states, value_m, value_w \
                  = feudalnet(x, goals, states, masks[-1])
@@ -113,13 +117,13 @@ def experiment(args):
             x = np.array([datapoint[0] for datapoint in data])
             reward = np.array([datapoint[1] for datapoint in data])
             done = np.array([datapoint[2] for datapoint in data])
-            # print(type(x))
-            # print(type(x[0]))
-            # print(type(x[0][0]))
+
+            episode_reward += reward
+
             # print(x)
             # print(reward)
             # print(done)
-            # raise Exception("aaa")
+            # raise Exception("stop here")
             # x, reward, done, info = envs.step(action)
             # logger.log_episode(info, step)
 
@@ -140,6 +144,7 @@ def experiment(args):
 
             step += args.num_workers
 
+        total_rewards += episode_reward.tolist()
         with torch.no_grad():
             *_, next_v_m, next_v_w = feudalnet(
                 x, goals, states, mask, save=False)
@@ -152,15 +157,19 @@ def experiment(args):
         torch.nn.utils.clip_grad_norm_(feudalnet.parameters(), args.grad_clip)
         optimizer.step()
         # logger.log_scalars(loss_dict, step)
-
+        print(save_steps)
         if len(save_steps) > 0 and step > save_steps[0]:
             torch.save({
                 'model': feudalnet.state_dict(),
                 'args': args,
                 'processor_mean': feudalnet.preprocessor.rms.mean,
                 'optim': optimizer.state_dict()},
-                f'models/{args.env_name}_{args.run_name}_step={step}.pt')
+                f'feudal_checkpoints/{args.env_name}_{args.run_name}_step={step}.pt')
             save_steps.pop(0)
+
+            # Save total rewards as pickle file
+            with open(f"feudal_rewards/{args.env_name}_{args.run_name}_rewards_step={step}.pkl", "wb") as f:
+                pickle.dump(total_rewards, f)
 
     for env in envs:
         env.close()
@@ -169,7 +178,10 @@ def experiment(args):
         'args': args,
         'processor_mean': feudalnet.preprocessor.rms.mean,
         'optim': optimizer.state_dict()},
-        f'models/{args.env_name}_{args.run_name}_steps={step}.pt')
+        f'feudal_checkpoints/{args.env_name}_{args.run_name}_steps={step}.pt')
+    
+    with open(f"feudal_rewards/{args.env_name}_{args.run_name}_rewards_final.pkl", "wb") as f:
+        pickle.dump(total_rewards, f)
 
 
 def main(args):

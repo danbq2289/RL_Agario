@@ -23,11 +23,14 @@ class DoubleDQNAgent:
     def __init__(self, state_size, action_size):
         self.state_size = state_size
         self.action_size = action_size
-        self.memory = deque(maxlen=10000)
+
+        self.memory = deque(maxlen=5000)
+        self.random = np.random.RandomState()
+
         self.gamma = 0.95
-        self.epsilon = 1.0
-        self.epsilon_min = 0.01
-        self.epsilon_decay = 0.995
+        self.epsilon = 0.7
+        self.epsilon_min = 0.07
+        self.epsilon_decay = 0.998
         self.learning_rate = 0.001
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -47,6 +50,8 @@ class DoubleDQNAgent:
         return np.argmax(action_values.cpu().data.numpy())
 
     def replay(self, batch_size):
+        if len(self.memory) < batch_size:
+            return
         minibatch = random.sample(self.memory, batch_size)
         states, actions, rewards, next_states, dones = zip(*minibatch)
 
@@ -66,9 +71,6 @@ class DoubleDQNAgent:
         loss.backward()
         self.optimizer.step()
 
-        if self.epsilon > self.epsilon_min:
-            self.epsilon *= self.epsilon_decay
-
     def update_target_model(self):
         self.target_model.load_state_dict(self.model.state_dict())
 
@@ -78,3 +80,7 @@ class DoubleDQNAgent:
     def load(self, filename):
         self.model.load_state_dict(torch.load(filename))
         self.target_model.load_state_dict(self.model.state_dict())
+
+    def decay_epsilon(self):
+        if self.epsilon > self.epsilon_min:
+            self.epsilon *= self.epsilon_decay

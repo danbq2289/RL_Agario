@@ -2,7 +2,7 @@ Installation instructions:
 
 1. conda create -n HRL python=3.10
 2. conda activate HRL
-3. conda install pytorch pygame gym
+3. conda install pytorch pygame gym matplotlib
 
 Play with dummy bots:
 python main.py --mode human_with_dummies --num_dummies 5
@@ -23,10 +23,9 @@ python main.py --mode dqn_vs_dummies --num_dummies 20 --dummy_lvl 1 --visualize
 TODO:
 
 - Applying DQN
-   - See how long the training will be:
-   -    Add a limit to the frames (doing it until the episode done might be too long)
-
-   - Update README with all the possibilities.
+   - Fix the epsilon: mostly high for easy env, mid for mid env, mid-low for hard env
+   - Multithreading (work for Colab?)
+   - Train all night (3 settings)
 
 - Applying Feudal Networks
    - Figure out the environment replacement

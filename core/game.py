@@ -71,7 +71,7 @@ class Game:
         # dummy bots
         self.players = non_dummy_players_list + [Player(point[0], point[1],
             (100 + random.randint(0, 155), 100 + random.randint(0, 155), 100 + random.randint(0, 155)),
-            name, mass=random.randint(50, 200)) for name, point in zip(player_names[non_dummy_players:], points[non_dummy_players:])]
+            name, mass=random.randint(50, 120)) for name, point in zip(player_names[non_dummy_players:], points[non_dummy_players:])]
 
         
         self.food = self.generate_food(game_config.INITIAL_FOOD_COUNT)

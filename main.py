@@ -13,6 +13,9 @@ import config
 from agar_env import AgarEnv
 from training.ddqn import DoubleDQNAgent
 
+import multiprocessing as mp
+from functools import partial
+
 game_config = config.GameConfig()
 matplotlib.use('Agg')  # Non-interactive backend
 
@@ -173,11 +176,31 @@ def basic_bot_benchmarking(n_dummies, frames_per_game, num_games):
     print(f"Player size evolution data saved to {filename}")
 
     
-def train_double_dqn(num_dummies, dummy_lvl, num_episodes=1000, batch_size=32, update_target_every=100,  max_frames_per_episode=3600):
+def train_episode(agent, num_dummies, dummy_lvl, max_frames_per_episode, episode):
+    env = AgarEnv(num_dummy_bots=num_dummies, dummy_lvl=dummy_lvl, max_frames_per_episode=max_frames_per_episode)
+    state = env.reset()
+    total_reward = 0
+    done = False
+    frames = 0
+    experiences = []
+    
+    while not done:
+        frames += 1
+        action = agent.act(state)
+        next_state, reward, done, _ = env.step(action)
+        experiences.append((state, action, reward, next_state, done))
+        state = next_state
+        total_reward += reward
+    
+    env.close()
+    return episode, total_reward, frames, experiences
+
+def train_double_dqn(num_dummies, dummy_lvl, num_episodes=1000, batch_size=32, update_target_every=100, max_frames_per_episode=3600):
     print("Training with the args:")
     print(f"num_dummies: {num_dummies}")
     print(f"dummy_lvl: {dummy_lvl}")
     print(f"num_episodes: {num_episodes}")
+    print(f"max_frames_per_episode: {max_frames_per_episode}")
     print(f"batch_size: {batch_size}")
     print(f"update_target_every: {update_target_every}")
 
@@ -186,34 +209,37 @@ def train_double_dqn(num_dummies, dummy_lvl, num_episodes=1000, batch_size=32, u
     action_size = env.action_space.n
     agent = DoubleDQNAgent(state_size, action_size)
 
-    for episode in range(num_episodes):
-        state = env.reset()
-        total_reward = 0
-        done = False
+    # Create a pool of workers
+    num_processes = mp.cpu_count() * 2 // 3
+    pool = mp.Pool(processes=num_processes)
 
-        st = time.time()
-        while not done:
-            action = agent.act(state)
-            next_state, reward, done, _ = env.step(action)
-            agent.remember(state, action, reward, next_state, done)
-            state = next_state
-            total_reward += reward
+    # Partial function for multiprocessing
+    train_func = partial(train_episode, agent, num_dummies, dummy_lvl, max_frames_per_episode)
+
+    for i in range(0, num_episodes, num_processes):
+        episodes_to_run = min(num_processes, num_episodes - i)
+        results = pool.map(train_func, range(i, i + episodes_to_run))
+
+        for episode, total_reward, frames, experiences in results:
+            for exp in experiences:
+                agent.remember(*exp)
 
             if len(agent.memory) > batch_size:
                 agent.replay(batch_size)
 
-        if episode % update_target_every == 0:
-            agent.update_target_model()
-        
-        end = time.time()
+            agent.decay_epsilon()
 
-        print(f"Episode: {episode+1}/{num_episodes}, Time: {(end - st):.2f}, Total Reward: {total_reward}, Epsilon: {agent.epsilon:.2f}")
+            if episode % update_target_every == 0:
+                agent.update_target_model()
 
-        if (episode + 1) % 100 == 0:
-            agent.save(f"double_dqn_model_episode_{episode+1}.pth")
+            print(f"Episode: {episode+1}/{num_episodes}, Frames: {frames}, Total Reward: {total_reward}, Epsilon: {agent.epsilon:.2f}")
 
+        if (i + episodes_to_run) % 100 == 0:
+            agent.save(f"double_dqn_model_episode_{i+episodes_to_run}.pth")
+
+    pool.close()
+    pool.join()
     env.close()
-
 
 def dqn_vs_dummies(num_dummies, dummy_lvl, visualize=True):
     # Set up the environment
@@ -272,6 +298,7 @@ def dqn_vs_dummies(num_dummies, dummy_lvl, visualize=True):
         renderer.close()
 
 if __name__ == "__main__":
+    mp.set_start_method('spawn', force=True)
     parser = argparse.ArgumentParser(description="Agar.io RL Environment")
     parser.add_argument("--mode", default="human_with_dummies")
     parser.add_argument("--num_dummies", type=int)

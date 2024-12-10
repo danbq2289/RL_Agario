@@ -23,9 +23,11 @@ Testing DQN bot against dummies:
 python main.py --mode dqn_vs_dummies --num_dummies 100 --dummy_lvl 0 --visualize --checkpoint_path "checkpoints/ddqn_200eps_lvl0.pth"
 
 Training FeUdal Bot:
-python main_feudal.py --mlp 1 --max-steps 6400 --num-steps 20 
+python main_feudal.py --max-steps 6400 --num-steps 20
 (16*num_steps before checking if saving (every tenth of max-steps))
 
+Testing Feudal Bot against dummies:
+python main.py --mode feudal_vs_dummies --num_dummies 100 --dummy_lvl 0 --visualize --checkpoint_path "feudal_checkpoints/Agario_baseline_step=1280.pt"
 
 TODO:
 

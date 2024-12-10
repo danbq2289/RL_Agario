@@ -12,7 +12,9 @@ import config
 import numpy as np
 from agar_env import AgarEnv
 from training.ddqn import DoubleDQNAgent
-
+from feudalnet import FeudalNetwork
+import torch
+from argparse import Namespace
 import multiprocessing as mp
 from functools import partial
 
@@ -309,6 +311,111 @@ def dqn_vs_dummies(num_dummies, dummy_lvl, visualize, checkpoint_path):
     if visualize:
         renderer.close()
 
+    
+def feudal_vs_dummies(num_dummies, dummy_lvl, visualize, checkpoint_path):
+    # Set up the environment
+    env = AgarEnv(num_dummy_bots=num_dummies, dummy_lvl=dummy_lvl, max_frames_per_episode=None)
+    env.reset()
+    
+    # Get state size and action size
+    state_size = env.observation_space.shape[0]
+    action_size = env.action_space.n
+    
+    dummy_args = Namespace(
+    lr=0.0005,
+    env_name='Agario',
+    num_workers=1,  # We only need one worker for evaluation
+    num_steps=400,
+    max_steps=int(1e8),
+    cuda=True,
+    grad_clip=5.,
+    entropy_coef=0.01,
+    mlp=1,
+    time_horizon=10,
+    hidden_dim_manager=256,
+    hidden_dim_worker=16,
+    gamma_w=0.99,
+    gamma_m=0.999,
+    alpha=0.5,
+    eps=int(1e-5),
+    dilation=10,
+    run_name='baseline',
+    seed=0,
+    device='cuda' if torch.cuda.is_available() else 'cpu'
+    )
+    
+    # Load the trained Feudal Network
+    feudal_net = FeudalNetwork(
+        num_workers=1,  # We only need one worker for evaluation
+        input_dim=(state_size,),
+        hidden_dim_manager=256,  # Adjust as needed
+        hidden_dim_worker=16,  # Adjust as needed
+        n_actions=action_size,
+        time_horizon=10,  # Adjust as needed
+        dilation=10,  # Adjust as needed
+        device='cuda' if torch.cuda.is_available() else 'cpu',
+        mlp=1,  # Adjust based on your model architecture
+        args=dummy_args  # You might need to create a dummy args object
+    )
+    
+    checkpoint = torch.load(checkpoint_path)
+    feudal_net.load_state_dict(checkpoint['model'], strict=True)
+    feudal_net.eval()
+    
+    # Initialize goals, states, and masks
+    goals, states, masks = feudal_net.init_obj()
+    
+    # Set up visualization if enabled
+    if visualize:
+        renderer = PygameRenderer(game_config)
+        clock = pygame.time.Clock()
+    
+    # Set up the game
+    game = env.game
+    dummy_bots = env.dummy_bots
+    
+    running = True
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+        
+        # Get Feudal Network action
+        state = env.game.get_RL_state(env.player_idx)
+        state = torch.FloatTensor(state).unsqueeze(0).to("cpu")
+        
+        with torch.no_grad():
+            action_dist, goals, states, _, _ = feudal_net(state, goals, states, masks[-1])
+        
+        # Sample action from the distribution
+        action = torch.multinomial(action_dist, 1).item()
+        
+        # Convert Feudal Network action to game format
+        feudal_action = env._action_to_game_format(action)
+        
+        # Get actions for dummy bots
+        dummy_actions = [bot.get_action(game) for bot in dummy_bots]
+        
+        # Combine Feudal Network action with dummy bot actions
+        all_actions = [feudal_action] + dummy_actions
+        
+        # Update game state
+        reset_players = game.update(all_actions)
+        
+        # Render the game if visualization is enabled
+        if visualize:
+            game_state = game.get_state()
+            renderer.render(game_state)
+            clock.tick(game_config.FPS)
+        
+        # Check if the episode is done
+        if env._is_episode_done(reset_players):
+            break
+    
+    if visualize:
+        renderer.close()
+    
+
 if __name__ == "__main__":
     mp.set_start_method('spawn', force=True)
     parser = argparse.ArgumentParser(description="Agar.io RL Environment")
@@ -354,5 +461,8 @@ if __name__ == "__main__":
         dqn_vs_dummies(num_dummies=args.num_dummies, dummy_lvl=args.dummy_lvl, 
                         visualize=args.visualize, checkpoint_path=args.checkpoint_path)
 
+    elif args.mode == "feudal_vs_dummies":
+        feudal_vs_dummies(num_dummies=args.num_dummies, dummy_lvl=args.dummy_lvl, 
+                        visualize=args.visualize, checkpoint_path=args.checkpoint_path)
     else:
         raise Exception("Mode not supported")

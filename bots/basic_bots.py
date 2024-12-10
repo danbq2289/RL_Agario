@@ -56,6 +56,9 @@ class DummyBot:
         max_cell = max(bot_player.cells, key=lambda c: c.radius)
         bot_x, bot_y = max_cell.x, max_cell.y
 
+        if self.lvl == 0:
+            return (bot_x, bot_y, False, False)
+
         if self.counter <= 0:
             # Choose new point target
             self.target = (random.randint(0, game_config.GAME_WIDTH), random.randint(0, game_config.GAME_HEIGHT))

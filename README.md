@@ -14,10 +14,10 @@ Benchmarking bots:
 python main.py --mode basic_bot_benchmarking --num_dummies 20 --num_games 3 --frames_per_game 50000
 
 Training DQN bot:
-python main.py --mode train_double_dqn --num_dummies 20 --dummy_lvl 1 --num_episodes 100 --batch_size 32 --update_target_every 10 --max_frames_per_episode 3600
+python main.py --mode train_double_dqn --num_dummies 30 --dummy_lvl 0 --num_episodes 1000 --batch_size 32 --update_target_every 100 --max_frames_per_episode 3600
 
 Testing DQN bot against dummies:
-python main.py --mode dqn_vs_dummies --num_dummies 20 --dummy_lvl 1 --visualize
+python main.py --mode dqn_vs_dummies --num_dummies 30 --dummy_lvl 0 --visualize
 
 
 TODO:

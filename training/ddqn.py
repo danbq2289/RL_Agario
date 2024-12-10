@@ -24,13 +24,13 @@ class DoubleDQNAgent:
         self.state_size = state_size
         self.action_size = action_size
 
-        self.memory = deque(maxlen=5000)
+        self.memory = deque(maxlen=2000)
         self.random = np.random.RandomState()
 
         self.gamma = 0.95
-        self.epsilon = 0.7
-        self.epsilon_min = 0.07
-        self.epsilon_decay = 0.998
+        self.epsilon = 0.3
+        self.epsilon_min = 0.03
+        self.epsilon_decay = 0.995
         self.learning_rate = 0.001
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 

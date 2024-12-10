@@ -1,8 +1,11 @@
+This repo uses an implementation of FeUdal Networks by lweitkamp:
+https://github.com/lweitkamp/feudalnets-pytorch
+
 Installation instructions:
 
 1. conda create -n HRL python=3.10
 2. conda activate HRL
-3. conda install pytorch pygame gym matplotlib
+3. conda install pytorch pygame gym matplotlib tensorboard
 
 Play with dummy bots:
 python main.py --mode human_with_dummies --num_dummies 5
@@ -14,10 +17,10 @@ Benchmarking bots:
 python main.py --mode basic_bot_benchmarking --num_dummies 20 --num_games 3 --frames_per_game 50000
 
 Training DQN bot:
-python main.py --mode train_double_dqn --num_dummies 30 --dummy_lvl 0 --num_episodes 1000 --batch_size 32 --update_target_every 100 --max_frames_per_episode 3600
+python main.py --mode train_double_dqn --num_dummies 100 --dummy_lvl 0 --num_episodes 600 --batch_size 32 --update_target_every 100 --max_frames_per_episode 3600 --checkpoint_path "checkpoints/double_dqn_model_lvl0_episode_400.pth"
 
 Testing DQN bot against dummies:
-python main.py --mode dqn_vs_dummies --num_dummies 30 --dummy_lvl 0 --visualize
+python main.py --mode dqn_vs_dummies --num_dummies 100 --dummy_lvl 0 --visualize --checkpoint_path "checkpoints/ddqn_200eps_lvl0.pth"
 
 
 TODO:
@@ -79,7 +82,6 @@ Done already:
 optional:
 
 - Prepare the repo
-   - Cite the guy that implemented FUN
    - Rewrite the README
    - Clean the code: replace get_state with get_state_for_drawing
    - Add game parameters where possible

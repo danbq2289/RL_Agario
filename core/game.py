@@ -61,7 +61,7 @@ class Game:
         assert 0 <= non_dummy_players <= len(player_names)
 
         points = generate_points(game_config.GAME_WIDTH, game_config.GAME_HEIGHT, 
-                                 game_config.INITIAL_SEPARATION_MIN, len(player_names))
+                                 game_config.INITIAL_SEPARATION_MIN/5, len(player_names))
         
         # Non dummy players 
         non_dummy_players_list = [Player(point[0], point[1],

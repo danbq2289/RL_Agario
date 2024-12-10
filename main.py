@@ -195,7 +195,7 @@ def train_episode(agent, num_dummies, dummy_lvl, max_frames_per_episode, episode
     env.close()
     return episode, total_reward, frames, experiences
 
-def train_double_dqn(num_dummies, dummy_lvl, num_episodes=1000, batch_size=32, update_target_every=100, max_frames_per_episode=3600):
+def train_double_dqn(num_dummies, dummy_lvl, num_episodes=1000, batch_size=32, update_target_every=100, max_frames_per_episode=3600, checkpoint_path=None):
     print("Training with the args:")
     print(f"num_dummies: {num_dummies}")
     print(f"dummy_lvl: {dummy_lvl}")
@@ -208,6 +208,8 @@ def train_double_dqn(num_dummies, dummy_lvl, num_episodes=1000, batch_size=32, u
     state_size = env.observation_space.shape[0]
     action_size = env.action_space.n
     agent = DoubleDQNAgent(state_size, action_size)
+    if checkpoint_path is not None:
+        agent.load(checkpoint_path)
 
     # Create a pool of workers
     num_processes = mp.cpu_count() * 2 // 3
@@ -234,14 +236,14 @@ def train_double_dqn(num_dummies, dummy_lvl, num_episodes=1000, batch_size=32, u
 
             print(f"Episode: {episode+1}/{num_episodes}, Frames: {frames}, Total Reward: {total_reward}, Epsilon: {agent.epsilon:.2f}")
 
-        if (i + episodes_to_run) % 100 == 0:
-            agent.save(f"double_dqn_model_episode_{i+episodes_to_run}.pth")
+        if (i + episodes_to_run) % 200 == 0:
+            agent.save(f"checkpoints/ddqn_{i+episodes_to_run}eps_lvl{dummy_lvl}.pth")
 
     pool.close()
     pool.join()
     env.close()
 
-def dqn_vs_dummies(num_dummies, dummy_lvl, visualize=True):
+def dqn_vs_dummies(num_dummies, dummy_lvl, visualize, checkpoint_path):
     # Set up the environment
     env = AgarEnv(num_dummy_bots=num_dummies, dummy_lvl=dummy_lvl, max_frames_per_episode=None)
     env.reset()
@@ -250,7 +252,7 @@ def dqn_vs_dummies(num_dummies, dummy_lvl, visualize=True):
 
     # Load the trained DQN model
     agent = DoubleDQNAgent(state_size, action_size)
-    agent.load("double_dqn_model_episode_100.pth")
+    agent.load(checkpoint_path)
     agent.epsilon = 0  # Set epsilon to 0 for deterministic actions
 
     # Set up visualization if enabled
@@ -315,6 +317,7 @@ if __name__ == "__main__":
     parser.add_argument("--update_target_every", type=int, default=100, help="Update target network every n episodes")
     parser.add_argument("--dummy_lvl", type=int)
     parser.add_argument("--max_frames_per_episode", type=int)
+    parser.add_argument("--checkpoint_path")
     
     args = parser.parse_args()
 
@@ -334,10 +337,12 @@ if __name__ == "__main__":
                         num_episodes=args.num_episodes, 
                         batch_size=args.batch_size, 
                         update_target_every=args.update_target_every,
-                        max_frames_per_episode=args.max_frames_per_episode)
+                        max_frames_per_episode=args.max_frames_per_episode,
+                        checkpoint_path=args.checkpoint_path)
         
     elif args.mode == "dqn_vs_dummies":
-        dqn_vs_dummies(num_dummies=args.num_dummies, dummy_lvl=args.dummy_lvl, visualize=args.visualize)
+        dqn_vs_dummies(num_dummies=args.num_dummies, dummy_lvl=args.dummy_lvl, 
+                        visualize=args.visualize, checkpoint_path=args.checkpoint_path)
 
     else:
         raise Exception("Mode not supported")

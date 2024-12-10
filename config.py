@@ -67,6 +67,7 @@ class GameConfig:
         self.TOTAL_DIRECTIONS = 16
         self.DISCRETE_FACTOR_DISTANCE = 2.5
 
+        self.ACTION_SPACE = 2 * self.TOTAL_DIRECTIONS + 1
         self.OBSERVATION_SIZE = (16 + 30 + 100 + 10) * 3
 
         self.MAX_STEPS = 10000  # Maximum steps per episode

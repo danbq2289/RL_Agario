@@ -11,13 +11,16 @@ game_config = config.GameConfig()
 import numpy as np
 import pickle
 
+import threading
+from queue import Queue
+
 parser = argparse.ArgumentParser(description='Feudal Nets')
 # GENERIC RL/MODEL PARAMETERS
 parser.add_argument('--lr', type=float, default=0.0005,
                     help='learning rate')
 parser.add_argument('--env-name', type=str, default='Agario',
                     help='gym environment name')
-parser.add_argument('--num-workers', type=int, default=16,
+parser.add_argument('--num-workers', type=int, default=64,
                     help='number of parallel environments to run')
 parser.add_argument('--num-steps', type=int, default=400,
                     help='number of steps the agent takes before updating')
@@ -58,6 +61,9 @@ parser.add_argument('--seed', type=int, default=0,
 
 args = parser.parse_args()
 
+def worker(env, action, result_queue):
+    result = env.step(action)
+    result_queue.put(result)
 
 def experiment(args):
 
@@ -106,14 +112,28 @@ def experiment(args):
                           keys=['r', 'r_i', 'v_w', 'v_m', 'logp', 'entropy',
                                 's_goal_cos', 'mask', 'ret_w', 'ret_m',
                                 'adv_m', 'adv_w'])
-        episode_reward = np.zeros(16)
+        episode_reward = np.zeros(args.num_workers)
         for _ in range(args.num_steps):
             action_dist, goals, states, value_m, value_w \
                  = feudalnet(x, goals, states, masks[-1])
 
             # Take a step, log the info, get the next state
             action, logp, entropy = take_action(action_dist)
-            data = [env.step(action_singular) for env, action_singular in zip(envs, action)]
+
+            # Create threads and result queue
+            threads = []
+            result_queue = Queue()
+            for env, action_singular in zip(envs, action):
+                thread = threading.Thread(target=worker, args=(env, action_singular, result_queue))
+                thread.start()
+                threads.append(thread)
+
+            # Wait for all threads to complete
+            for thread in threads:
+                thread.join()
+
+            # Collect results
+            data = [result_queue.get() for _ in range(args.num_workers)]
             x = np.array([datapoint[0] for datapoint in data])
             reward = np.array([datapoint[1] for datapoint in data])
             done = np.array([datapoint[2] for datapoint in data])

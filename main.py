@@ -197,7 +197,8 @@ def train_episode(agent, num_dummies, dummy_lvl, max_frames_per_episode, episode
     env.close()
     return episode, total_reward, frames, experiences
 
-def train_double_dqn(num_dummies, dummy_lvl, num_episodes=1000, batch_size=32, update_target_every=100, max_frames_per_episode=3600, checkpoint_path=None):
+def train_double_dqn(num_dummies, dummy_lvl, num_episodes=1000, batch_size=32, 
+            episodes_to_save=200, update_target_every=100, max_frames_per_episode=3600, checkpoint_path=None):
     print("Training with the args:")
     print(f"num_dummies: {num_dummies}")
     print(f"dummy_lvl: {dummy_lvl}")
@@ -214,7 +215,7 @@ def train_double_dqn(num_dummies, dummy_lvl, num_episodes=1000, batch_size=32, u
         agent.load(checkpoint_path)
 
     # Create a pool of workers
-    num_processes = mp.cpu_count() * 2 // 3
+    num_processes = (mp.cpu_count() * 2) // 3
     pool = mp.Pool(processes=num_processes)
 
     # Partial function for multiprocessing
@@ -241,7 +242,7 @@ def train_double_dqn(num_dummies, dummy_lvl, num_episodes=1000, batch_size=32, u
 
             print(f"Episode: {episode+1}/{num_episodes}, Frames: {frames}, Total Reward: {total_reward}, Epsilon: {agent.epsilon:.2f}")
 
-        if (i + episodes_to_run) % 20 == 0:
+        if (i + episodes_to_run) % episodes_to_save == 0:
             agent.save(f"checkpoints/ddqn_{i+episodes_to_run}eps_lvl{dummy_lvl}.pth")
             # Save total rewards as pickle file
             with open(f"rewards/ddqn_rewards_{i+episodes_to_run}eps_lvl{dummy_lvl}.pkl", "wb") as f:
@@ -430,6 +431,7 @@ if __name__ == "__main__":
 
     # Training
     parser.add_argument("--num_episodes", type=int, default=1000)
+    parser.add_argument("--episodes_to_save", type=int)
     parser.add_argument("--batch_size", type=int, default=32)
     parser.add_argument("--update_target_every", type=int, default=100, help="Update target network every n episodes")
     parser.add_argument("--dummy_lvl", type=int)
@@ -451,7 +453,8 @@ if __name__ == "__main__":
     elif args.mode == "train_double_dqn":
         train_double_dqn(num_dummies=args.num_dummies, 
                         dummy_lvl=args.dummy_lvl,
-                        num_episodes=args.num_episodes, 
+                        num_episodes=args.num_episodes,
+                        episodes_to_save=args.episodes_to_save, 
                         batch_size=args.batch_size, 
                         update_target_every=args.update_target_every,
                         max_frames_per_episode=args.max_frames_per_episode,

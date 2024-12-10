@@ -177,7 +177,7 @@ def experiment(args):
         torch.nn.utils.clip_grad_norm_(feudalnet.parameters(), args.grad_clip)
         optimizer.step()
         # logger.log_scalars(loss_dict, step)
-        print(save_steps)
+        # print(save_steps)
         if len(save_steps) > 0 and step > save_steps[0]:
             torch.save({
                 'model': feudalnet.state_dict(),

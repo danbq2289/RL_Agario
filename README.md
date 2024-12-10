@@ -19,15 +19,22 @@ python main.py --mode basic_bot_benchmarking --num_dummies 20 --num_games 3 --fr
 Training DQN bot:
 python main.py --mode train_double_dqn --num_dummies 100 --dummy_lvl 0 --num_episodes 600 --episodes_to_save 200 --batch_size 32 --update_target_every 100 --max_frames_per_episode 3600 --checkpoint_path "checkpoints/double_dqn_model_lvl0_episode_400.pth"
 
+python main.py --mode train_double_dqn --num_dummies 40 --dummy_lvl 1 --num_episodes 600 --episodes_to_save 100 --batch_size 32 --update_target_every 100 --max_frames_per_episode 3000 --checkpoint_path "checkpoints/double_dqn_model_lvl0_episode_400.pth"
+
+
 Testing DQN bot against dummies:
-python main.py --mode dqn_vs_dummies --num_dummies 100 --dummy_lvl 0 --visualize --checkpoint_path "checkpoints/ddqn_200eps_lvl0.pth"
+python main.py --mode dqn_vs_dummies --num_dummies 100 --dummy_lvl 0 --visualize --checkpoint_path "checkpoints/ddqn_400eps_lvl0.pth"
 
 Training FeUdal Bot:
 python main_feudal.py --max-steps 6400 --num-steps 20
 (16*num_steps before checking if saving (every tenth of max-steps))
+python main_feudal.py --max-steps 1280000 --num-steps 2000
+(16 episodes: 32000, so 64 episodes 128000 and it finally saves)
+
+(Change so that it takes the lvl0 bot)
 
 Testing Feudal Bot against dummies:
-python main.py --mode feudal_vs_dummies --num_dummies 100 --dummy_lvl 0 --visualize --checkpoint_path "feudal_checkpoints/Agario_baseline_step=1280.pt"
+python main.py --mode feudal_vs_dummies --num_dummies 100 --dummy_lvl 0 --visualize --checkpoint_path "feudal_checkpoints/Agario_baseline_steps=1280000.pt"
 
 TODO:
 

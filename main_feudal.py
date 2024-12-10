@@ -20,7 +20,7 @@ parser.add_argument('--lr', type=float, default=0.0005,
                     help='learning rate')
 parser.add_argument('--env-name', type=str, default='Agario',
                     help='gym environment name')
-parser.add_argument('--num-workers', type=int, default=64,
+parser.add_argument('--num-workers', type=int, default=16,
                     help='number of parallel environments to run')
 parser.add_argument('--num-steps', type=int, default=400,
                     help='number of steps the agent takes before updating')
@@ -81,7 +81,7 @@ def experiment(args):
         torch.backends.cudnn.benchmark = False
 
     # envs = make_envs('Agar', args.num_workers)
-    envs = [AgarEnv(num_dummy_bots=100, dummy_lvl=0, max_frames_per_episode=None) 
+    envs = [AgarEnv(num_dummy_bots=40, dummy_lvl=1, max_frames_per_episode=None) 
             for _ in range(args.num_workers)]
     feudalnet = FeudalNetwork(
         num_workers=args.num_workers,
@@ -94,6 +94,10 @@ def experiment(args):
         device=device,
         mlp=args.mlp,
         args=args)
+    
+    checkpoint_path = "feudal_checkpoints/feudal_botlvl0.pt"
+    checkpoint = torch.load(checkpoint_path)
+    feudalnet.load_state_dict(checkpoint['model'], strict=True)
 
     optimizer = torch.optim.RMSprop(feudalnet.parameters(), lr=args.lr,
                                     alpha=0.99, eps=1e-5)
@@ -171,6 +175,7 @@ def experiment(args):
             next_v_m = next_v_m.detach()
             next_v_w = next_v_w.detach()
 
+        print(f"16 episodes have completed, step: {step}")
         optimizer.zero_grad()
         loss, loss_dict = feudal_loss(storage, next_v_m, next_v_w, args)
         loss.backward()
@@ -179,6 +184,8 @@ def experiment(args):
         # logger.log_scalars(loss_dict, step)
         # print(save_steps)
         if len(save_steps) > 0 and step > save_steps[0]:
+            print(f"Saving. step: {step}")
+            print(save_steps)
             torch.save({
                 'model': feudalnet.state_dict(),
                 'args': args,

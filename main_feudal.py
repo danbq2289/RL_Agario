@@ -81,7 +81,7 @@ def experiment(args):
         torch.backends.cudnn.benchmark = False
 
     # envs = make_envs('Agar', args.num_workers)
-    envs = [AgarEnv(num_dummy_bots=40, dummy_lvl=1, max_frames_per_episode=None) 
+    envs = [AgarEnv(num_dummy_bots=30, dummy_lvl=3, max_frames_per_episode=None) 
             for _ in range(args.num_workers)]
     feudalnet = FeudalNetwork(
         num_workers=args.num_workers,
@@ -95,7 +95,7 @@ def experiment(args):
         mlp=args.mlp,
         args=args)
     
-    checkpoint_path = "feudal_checkpoints/feudal_botlvl0.pt"
+    checkpoint_path = "feudal_checkpoints/feudal_botlv2.pt"
     checkpoint = torch.load(checkpoint_path)
     feudalnet.load_state_dict(checkpoint['model'], strict=True)
 

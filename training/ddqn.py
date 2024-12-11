@@ -30,7 +30,7 @@ class DoubleDQNAgent:
         self.gamma = 0.95
         self.epsilon = 0.3
         self.epsilon_min = 0.03
-        self.epsilon_decay = 0.995
+        self.epsilon_decay = 0.99
         self.learning_rate = 0.001
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 

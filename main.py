@@ -215,7 +215,7 @@ def train_double_dqn(num_dummies, dummy_lvl, num_episodes=1000, batch_size=32,
         agent.load(checkpoint_path)
 
     # Create a pool of workers
-    num_processes = (mp.cpu_count() * 2) // 3
+    num_processes = mp.cpu_count() // 2
     pool = mp.Pool(processes=num_processes)
 
     # Partial function for multiprocessing

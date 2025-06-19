@@ -1,3 +1,5 @@
+Python agar.io clone in pygame, with focus on training your own agents with RL.
+
 This repo uses an implementation of FeUdal Networks by lweitkamp:
 https://github.com/lweitkamp/feudalnets-pytorch
 
